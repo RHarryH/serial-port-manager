@@ -1,16 +1,21 @@
 package main.java.com.navigation.serial;
 
 import java.io.BufferedReader;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import gnu.io.CommPortIdentifier; 
 import gnu.io.SerialPort;
 import gnu.io.SerialPortEvent; 
-import gnu.io.SerialPortEventListener; 
+import gnu.io.SerialPortEventListener;
+/*import net.sf.marineapi.nmea.event.SentenceEvent;
+import net.sf.marineapi.nmea.event.SentenceListener;
+import net.sf.marineapi.nmea.io.SentenceReader;*/
+
 import java.util.Enumeration;
 
 
-public class Serial implements SerialPortEventListener {
+public class SerialPortManager implements SerialPortEventListener/*, SentenceListener*/ {
 	private SerialPort serialPort;
 	
     /**
@@ -22,6 +27,7 @@ public class Serial implements SerialPortEventListener {
 		"COM1", // Windows
 	};
 	
+	//private InputStream input;
 	private BufferedReader input;
 	private OutputStream output;
 	private static final int TIMEOUT = 2000;
@@ -64,20 +70,50 @@ public class Serial implements SerialPortEventListener {
 	
 	        serialPort.addEventListener(this);
 	        serialPort.notifyOnDataAvailable(true);
+	        serialPort.enableReceiveThreshold(1);
+	        
+		    /*input = serialPort.getInputStream();
+		    SentenceReader sr = new SentenceReader(input);
+			sr.addSentenceListener(this);
+			sr.start();*/
 	    } catch (Exception e) {
 	        System.err.println(e.toString());
 	    }
 	}
 
-    /**
-     * Close the port.
-     */
+	/**
+	 * Close the port.
+	 */
 	public synchronized void close() {
 	    if (serialPort != null) {
 	        serialPort.removeEventListener();
 	        serialPort.close();
 	    }
 	}
+
+	public SerialPort getSerialPort() {
+		return serialPort;
+	}
+
+	/*@Override
+	public void readingPaused() {
+		System.out.println("-- Paused --");
+	}
+
+	@Override
+	public void readingStarted() {
+		System.out.println("-- Started --");
+	}
+
+	@Override
+	public void readingStopped() {
+		System.out.println("-- Stopped --");
+	}
+
+	@Override
+	public void sentenceRead(SentenceEvent event) {
+		System.out.println(event.getSentence());
+	}*/
 
 	/**
 	 * This event is responsible for reading the buffer every time when
@@ -105,8 +141,8 @@ public class Serial implements SerialPortEventListener {
 	 * @throws Exception
 	 */
 	public static void main(String[] args) throws Exception {
-	    Serial main = new Serial();
-	    main.initialize();
+	    SerialPortManager spm = new SerialPortManager();
+	    spm.initialize();
 	    
 	    // create new thread
 	    Thread t = new Thread() {
