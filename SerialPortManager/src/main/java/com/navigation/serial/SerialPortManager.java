@@ -93,7 +93,7 @@ public class SerialPortManager implements SentenceListener {
 	 * Get data gathered from serial port and decoded by Marine API.
 	 * @return simplified structure for storing most important data
 	 */
-	public GPSData getGps() {
+	public static GPSData getGps() {
 		return gps;
 	}
 
