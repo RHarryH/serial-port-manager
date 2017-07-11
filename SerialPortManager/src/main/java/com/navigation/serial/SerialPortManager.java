@@ -1,13 +1,15 @@
-package main.java.com.navigation.serial;
+package com.navigation.serial;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.Enumeration;
 
 import gnu.io.CommPortIdentifier;
 import gnu.io.PortInUseException;
 import gnu.io.SerialPort;
-import main.java.com.navigation.GPSData;
+import com.navigation.GPSData;
 import net.sf.marineapi.nmea.event.SentenceEvent;
 import net.sf.marineapi.nmea.event.SentenceListener;
 import net.sf.marineapi.nmea.io.SentenceReader;
@@ -18,7 +20,7 @@ import net.sf.marineapi.nmea.sentence.VTGSentence;
 
 public class SerialPortManager implements SentenceListener {
 	private SerialPort serialPort;
-	private final static GPSData gps = new GPSData();
+	private final GPSData gps = new GPSData();
 	
     /**
      * Ports specified for each OS.
@@ -31,23 +33,33 @@ public class SerialPortManager implements SentenceListener {
 	
 	private InputStream input;
 	private OutputStream output;
-	private static final int TIMEOUT = 2000;
-	private static final int DATARATE = 9600;
+	private int TIMEOUT = 2000;
+	private int DATARATE = 9600;
+	
+	/**
+	 * Uses default configuration
+	 */
+	public SerialPortManager() {}
+	
+	public SerialPortManager(int timeout, int datarate) {
+		this.TIMEOUT = timeout;
+		this.DATARATE = datarate;
+	}
 
 	/**
 	 * Find port name for host OS, open it and create read and write buffers.
 	 */
-	private void initialize() {
+	public void initialize() {
 	    CommPortIdentifier portId = null;
 	    Enumeration<?> portEnum = CommPortIdentifier.getPortIdentifiers();
 	
 	    // first, find an instance of serial port as set in PORT_NAMES
 	    while (portEnum.hasMoreElements()) {
 	        CommPortIdentifier currPortId = (CommPortIdentifier) portEnum.nextElement();
-		    
-		    System.out.println(currPortId.getName());
+
 	        for (String portName : PORT_NAMES) {
 	            if (currPortId.getName().equals(portName)) {
+	    		    System.out.println("Founded port: " + currPortId.getName());
 	                portId = currPortId;
 	                break;
 	            }
@@ -68,6 +80,7 @@ public class SerialPortManager implements SentenceListener {
 	
 	        // open the streams
 		    input = serialPort.getInputStream();
+		    output = serialPort.getOutputStream();
 		    
 		    SentenceReader reader = new SentenceReader(input);
 			reader.addSentenceListener(this, SentenceId.VTG);
@@ -93,8 +106,22 @@ public class SerialPortManager implements SentenceListener {
 	 * Get data gathered from serial port and decoded by Marine API.
 	 * @return simplified structure for storing most important data
 	 */
-	public static GPSData getGps() {
+	public GPSData getGps() {
 		return gps;
+	}
+	
+	/** 
+	 * Send message through serial port
+	 * @param command
+	 */
+	public void sendCommand(String command) {
+		if(output != null) {
+			try {
+				output.write(command.getBytes(Charset.forName("UTF-8")));
+			} catch (IOException e) {
+				System.err.println("Writing to serial port error.");
+			}
+		}
 	}
 
 	/**
