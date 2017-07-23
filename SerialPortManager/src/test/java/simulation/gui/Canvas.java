@@ -9,7 +9,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
+import java.awt.geom.Point2D.Double;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import javax.swing.JPanel;
@@ -32,7 +34,6 @@ public class Canvas extends JPanel {
 	private RobotMock mock;
 
 	private List<Point2D.Double> points = new ArrayList<>();
-	private double heading;
 	private Point2D.Double target, current;
 
 	public Canvas(boolean b) {
@@ -58,8 +59,7 @@ public class Canvas extends JPanel {
             public void mousePressed(MouseEvent e) {
 
 	    		target = projection.toWorldCoords(e.getX(), e.getY());
-	    		System.out.println("Target: " + e.getX() + ", " + e.getY() + ", " + target);
-
+	    		//System.out.println("Target: " + e.getX() + ", " + e.getY() + ", " + target);
                 System.out.println("Target GPS: " + projection.fromWorldToGeo(target));
                 mock.setTarget(projection.fromWorldToGeo(target));
                 repaint();
@@ -89,8 +89,9 @@ public class Canvas extends JPanel {
         
         // draw path
         g2.setColor(Color.GRAY);
-        for (Point2D.Double point : points) {
-        	Point window = projection.toWindowCoords(point);
+        Iterator<Double> it = points.iterator();
+        while(it.hasNext()) {
+        	Point window = projection.toWindowCoords(it.next());
             g2.fillOval(window.x - 2, window.y - 2, 4, 4); 
         }
         
@@ -113,53 +114,67 @@ public class Canvas extends JPanel {
 
         AffineTransform old = g2.getTransform();
         
-        g2.rotate(heading);
+        g2.rotate(mock.getHeading() != null ? mock.getHeading() : 0);
         
         g2.drawLine(0, -15, 0, -30);
         g2.drawRect(-10, -15, 20, 30);
         
         g2.setTransform(old);
         
-        old = g2.getTransform();
+        drawCompassBearing(g2);
         
-        // draw compass bearing
-        for(int i = 0; i < 360 ; i+=30) {
-        	g2.drawLine(0, 0, 100, 0);
-            g2.drawString(i + 90 + ", " + (int)Angle.normalizeAngleDeg(i + 90), 50, 15);
-        	g2.rotate(Math.toRadians(30));
-        }
-        
-        old = g2.getTransform();
+        g2.setTransform(old);
 
         // draw heading line
-        if(mock.getHeading() != null) {
-        	g2.setColor(Color.RED);
-        	
-	        g2.rotate(mock.getHeading() - Math.PI/2);
-	        g2.drawLine(0, 0, 100, 0);
-	        g2.drawString("H" + Math.round(Math.toDegrees(mock.getHeading()) * 100.0f)/100.0f, 90, 15);
-        }
+        drawHeading(g2);
         
         g2.setTransform(old);
         
         // draw desired angle line
-        if(mock.getDesiredAngle() != null) {
+        drawDesiredAngle(g2);
+    }
+
+	/**
+	 * Rysuje docelowy kąt obrotu
+	 * @param g2
+	 */
+	private void drawDesiredAngle(Graphics2D g2) {
+		if(mock.getDesiredAngle() != null) {
 	        g2.setColor(Color.BLUE);
 	
 	        g2.rotate(mock.getDesiredAngle() - Math.PI/2);
 	        g2.drawLine(0, 0, 100, 0);
 	        g2.drawString("D" + Math.round(Math.toDegrees(mock.getDesiredAngle()) * 100.0f)/100.0f, 90, 15);
         }
-    }
-	
+	}
+
 	/**
-	 * Ustawia kierunek robota
-	 * @param heading
+	 * Rysuje kierunek robota
+	 * @param g2
 	 */
-	public void setHeading(double heading) {
-		this.heading = heading;
-		mock.setHeading(Angle.denormalizeAngle(heading));
-		repaint();
+	private void drawHeading(Graphics2D g2) {
+		if(mock.getHeading() != null) {
+        	g2.setColor(Color.RED);
+        	
+	        g2.rotate(mock.getHeading() - Math.PI/2);
+	        g2.drawLine(0, 0, 100, 0);
+	        g2.drawString("H" + Math.round(Math.toDegrees(mock.getHeading()) * 100.0f)/100.0f, 90, 15);
+        }
+	}
+
+	/**
+	 * Rysuje kąty w kompasie
+	 * @param g2
+	 */
+	private void drawCompassBearing(Graphics2D g2) {
+		g2.rotate(Math.toRadians(-90));
+        
+        // draw compass bearing
+        for(int i = 0; i < 360 ; i+=30) {
+        	g2.drawLine(0, 0, 100, 0);
+            g2.drawString(i + ", " + (int)Angle.normalizeAngleDeg(i), 50, 15);
+        	g2.rotate(Math.toRadians(30));
+        }
 	}
 	
 	/**
