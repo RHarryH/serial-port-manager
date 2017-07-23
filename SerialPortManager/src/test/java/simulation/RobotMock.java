@@ -18,17 +18,46 @@ import simulation.gui.Canvas;
  */
 public class RobotMock {
 	
+	/**
+	 * Wątek odpowiedzialny za symulację obrotu
+	 * @author Harry
+	 *
+	 */
+	private class Rotation extends Thread {
+		public double targetDirection;
+		
+		public void setTargetDirection(double targetDirection) {
+			this.targetDirection = targetDirection;
+		}
+	
+		@Override
+		public void run() {
+			//Double desiredAngle = controller.getDesiredAngle();
+			while(Math.abs(controller.getDesiredAngle() - heading) > Math.toRadians(1)) {
+				if(targetDirection < 0)
+					setHeading(heading - Math.toRadians(1));
+				else
+					setHeading(heading + Math.toRadians(1));
+	
+				try {
+					TimeUnit.MILLISECONDS.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+			System.out.println("Mock(Thread): H:" + Math.toDegrees(heading) + " TD:" +  Math.round(Math.toDegrees(targetDirection)));
+		}
+	}
+
 	private Canvas canvas;
 	private Projection projection = new Projection(20);
 	private RobotControllerTest controller;
 	
 	private Double heading;
-	private double counter;
-	
 	private GPSData current;
 
-	private boolean rotating = false;
-
+	private Rotation rotation = new Rotation();
+	
 	public RobotMock(GPSData initial, Canvas canvas) {
 		this.canvas = canvas;
 		this.controller = new RobotControllerTest(this);
@@ -51,7 +80,9 @@ public class RobotMock {
 	 * @param heading
 	 */
 	public void setHeading(double heading) {
-		controller.setHeading(heading);
+		this.heading = Angle.denormalizeAngle(heading);
+		canvas.repaint();
+		controller.setHeading(this.heading);
 	}
 	
 	/**
@@ -67,9 +98,8 @@ public class RobotMock {
 	 * @param current
 	 */
 	public void setCurrent(GPSData current) {
-		this.current = current;
-		canvas.setCurrent(current);
 		controller.setCurrent(current);
+		canvas.setCurrent(current);
 	}
 	
 	/**
@@ -78,8 +108,8 @@ public class RobotMock {
 	 */
 	public void setCurrentInitial(GPSData initial) {
 		this.current = initial;
-		canvas.setCurrent(initial);
 		controller.setCurrentInitial(initial);
+		canvas.setCurrent(initial);
 	}
 
 	/**
@@ -91,68 +121,26 @@ public class RobotMock {
 	}
 
 	/**
-	 * Sprawdź czy robot jest w trakcie obracania
-	 * @return
-	 */
-	private synchronized boolean isRotating() {
-		return rotating;
-	}
-	
-	/**
-	 * Ustaw czy robot aktualnie się obraca
-	 * @param rotating
-	 */
-	private synchronized void setRotating(boolean rotating) {
-		this.rotating = rotating;
-	}
-	
-	/**
 	 * Parsuje komendy i symuluje akcję robota, aktualizuje współrzędne i kierunek
 	 * @param commands
 	 */
 	public void parse(String commands) {
 		String[] splitted = commands.split("\\|");
+		System.out.println("Mock: COMMANDS: " + commands);
 		for(String command : splitted) {
 			switch(Command.valueOf(command.substring(0, 1))) {
 			case T: {
 				double targetDirection = Double.parseDouble(command.substring(1));
+				
+				heading = controller.getHeading();
+				rotation.setTargetDirection(targetDirection);
 
-				if(!isRotating()) {
-					heading = controller.getHeading();
-					
-					System.out.println("Mock: H:" + Math.toDegrees(heading) + " TD:" +  Math.round(Math.toDegrees(targetDirection)));
-					
-					// jeśli robot obrócił się o zadany kąt, nie rób tego ponownie
-					if(controller.getDesiredAngle() == heading)return;
+				System.out.println("Mock: H:" + Math.toDegrees(heading) + " TD:" +  Math.round(Math.toDegrees(targetDirection)));
 
-					setRotating(true);
-					counter = 0;
-					
-					// uruchamia wątek odpowiedzialny za symulację obrotu
-					new Thread() {
-	
-						@Override
-						public void run() {
-							while(counter < 1) {
-								counter += 0.1f;
-								if(counter > 1)counter = 1;
-								//System.out.println("Mock(Thread): C: " + counter);
-	
-								canvas.setHeading(heading + lerp(0, targetDirection, counter));
-
-								try {
-									TimeUnit.MILLISECONDS.sleep(100);
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
-							}
-							heading += targetDirection;
-							canvas.setHeading(heading);
-							System.out.println("Mock(Thread): H:" + Math.toDegrees(heading) + " TD:" +  Math.round(Math.toDegrees(targetDirection)));
-							setRotating(false);
-						}
-	
-					}.start();
+				if(!rotation.isAlive()) {
+					rotation = new Rotation();
+					rotation.setTargetDirection(targetDirection);
+					rotation.start();
 				}
 
 				break;
@@ -162,7 +150,7 @@ public class RobotMock {
 				if(speed != 0) {
 					if(controller.getHeading() != null) {
 						// wyznacz kierunek (z korektą kąta)
-						Point2D.Double direction = Angle.angleToVector(Angle.normalizeAngle(controller.getHeading() - Math.PI/2));
+						Point2D.Double direction = Angle.angleToVector(controller.getHeading() - Math.PI/2);
 
 						System.out.println("Mock(V): Heading: " + Math.toDegrees(controller.getHeading()));
 
@@ -189,9 +177,9 @@ public class RobotMock {
 		}
 	}
 	
-	private double lerp(double a, double b, double step) {
+	/*private double lerp(double a, double b, double step) {
 	    return a + step * (b - a);
-	}
+	}*/
 	
 	public void tryRestart() {
 		controller.tryRestart();

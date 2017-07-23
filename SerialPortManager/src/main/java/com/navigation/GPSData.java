@@ -12,7 +12,7 @@ public class GPSData {
 	
 	@Override
 	public String toString() {
-		return "GPSData [latitude=" + latitude + ", longitude=" + longitude + "]";
+		return "[latitude=" + latitude + ", longitude=" + longitude + "]";
 	}
 
 	public GPSData() {}

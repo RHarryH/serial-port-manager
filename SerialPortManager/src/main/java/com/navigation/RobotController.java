@@ -62,14 +62,11 @@ public class RobotController implements Runnable {
 	 * @throws InterruptedException
 	 */
 	public void run() {
-		/*if(target == null)
-			throw new IllegalStateException("Target point not specified!");*/
-
 		sendCommands();
 		
 		while(!interrupt) {
 			try {
-				TimeUnit.MILLISECONDS.sleep(1000); // odczekaj 500 milisekund
+				TimeUnit.MILLISECONDS.sleep(1000); // odczekaj sekundę
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -109,9 +106,9 @@ public class RobotController implements Runnable {
 	private void sendCommands() {
 		
 		if(target != null && !current.equals(target)) {
-			if(previous != null && (desiredAngle == null || !desiredAngle.equals(heading))) {	
+			if(previous != null) {	
 				if(heading == null)
-					setHeading(Angle.denormalizeAngle(Angle.getBearing(current, previous)));
+					setHeading(Angle.denormalizeAngle(Angle.getBearing(previous, current)));
 				
 				System.out.println("\nController: Heading: " + Math.toDegrees(heading));
 				
@@ -122,7 +119,7 @@ public class RobotController implements Runnable {
 				double angleDelta = Math.atan2(Math.sin(desiredAngle - heading), Math.cos(desiredAngle - heading));
 				System.out.println("Controller: Delta: " + Math.toDegrees(angleDelta) + " " + Math.toDegrees(2*Math.PI - angleDelta) + "\n");
 				
-				String commands = T.getMemonic() + angleDelta;
+				String commands = T.getMemonic() + angleDelta + "|" + V.getMemonic() + SPEED;
 				sendCommand(commands);
 
 			} else {
