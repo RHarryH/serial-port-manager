@@ -4,6 +4,7 @@ import net.sf.marineapi.nmea.util.Position;
 
 public class GPSData {
 	private static final double EPS = 0.000005; // błąd
+	private static final double R = 6371e3; // promien Ziemi w metrach
 	
 	private double latitude, // szerokosc geogr.
 				   longitude, // dlugosc geogr.
@@ -56,6 +57,22 @@ public class GPSData {
 	public double getSpeed() {
 		return speed;
 	}
+
+    public double getDistanceTo(GPSData target) {
+    	double lat1 = Math.toRadians(this.getLatitude());
+		double lat2 = Math.toRadians(target.getLatitude());
+    
+		double latitudeDelta = lat2 - lat1;
+		double longitudeDelta =  Math.toRadians(target.getLongitude() - this.getLongitude());
+    
+		double a = Math.pow(Math.sin(latitudeDelta / 2.0), 2.0) + 
+				Math.cos(lat1) * Math.cos(lat2) * 
+				Math.pow(Math.sin(longitudeDelta) / 2.0, 2.0);
+		
+		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		
+		return R * c;
+    }
 
 	public void setSpeed(double speed) {
 		this.speed = speed;
