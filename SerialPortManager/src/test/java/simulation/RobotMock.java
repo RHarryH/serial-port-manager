@@ -50,7 +50,7 @@ public class RobotMock {
 	}
 
 	private Canvas canvas;
-	private Projection projection = new Projection(20);
+	private Projection projection = new Projection(22);
 	private RobotControllerTest controller;
 	
 	private Double heading;
@@ -63,8 +63,8 @@ public class RobotMock {
 		this.controller = new RobotControllerTest(this);
 		this.canvas.setMock(this);
 		
-		this.controller.setCurrentInitial(initial);
-		this.canvas.setInitialCurrent(initial);
+		this.controller.setInitialPosition(initial);
+		this.canvas.setInitialPosition(initial);
 	}
 	
 	/**
@@ -106,10 +106,18 @@ public class RobotMock {
 	 * Ustaw początkową pozycję
 	 * @param initial
 	 */
-	public void setCurrentInitial(GPSData initial) {
+	public void setInitialPosition(GPSData initial) {
 		this.current = initial;
-		controller.setCurrentInitial(initial);
+		controller.setInitialPosition(initial);
 		canvas.setCurrent(initial);
+	}
+	
+	/**
+	 * Pobierz aktualną pozycję
+	 * @return
+	 */
+	public GPSData getCurrent() {
+		return current;
 	}
 
 	/**
@@ -155,7 +163,7 @@ public class RobotMock {
 						System.out.println("Mock(V): Heading: " + Math.toDegrees(controller.getHeading()));
 
 						// ustaw prędkość
-						speed /= 100000;
+						speed /= 300000;
 						
 						// zaktualizuj pozycję
 						Point2D.Double world = projection.fromGeoToWorld(current);
@@ -166,7 +174,7 @@ public class RobotMock {
 						setCurrent(current);
 						System.out.println("Mock(V): Current:" + current + " Direction:" + direction);
 					} else {
-						current.setLatitude(current.getLatitude() + 0.00001);
+						current.setLatitude(current.getLatitude() + 0.000002);
 						setCurrent(current);
 					}
 				}

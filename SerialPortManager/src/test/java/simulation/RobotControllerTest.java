@@ -42,7 +42,7 @@ public class RobotControllerTest extends RobotController {
 	 * Ustawia aktualną pozycję robota (użyte podczas inicjalizacji)
 	 * @param newCurrent
 	 */
-	public void setCurrentInitial(GPSData newCurrent) {
+	public void setInitialPosition(GPSData newCurrent) {
 		this.current = newCurrent;
 	}
 	

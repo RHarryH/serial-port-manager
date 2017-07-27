@@ -30,7 +30,7 @@ import simulation.convert.Projection;
  */
 public class Canvas extends JPanel {
 
-	private Projection projection = new Projection(20);
+	private Projection projection = new Projection(22);
 	private RobotMock mock;
 
 	private List<Point2D.Double> points = new ArrayList<>();
@@ -59,9 +59,13 @@ public class Canvas extends JPanel {
             public void mousePressed(MouseEvent e) {
 
 	    		target = projection.toWorldCoords(e.getX(), e.getY());
-	    		//System.out.println("Target: " + e.getX() + ", " + e.getY() + ", " + target);
-                System.out.println("Target GPS: " + projection.fromWorldToGeo(target));
-                mock.setTarget(projection.fromWorldToGeo(target));
+                
+                GPSData targetCoordinates = projection.fromWorldToGeo(target);
+
+                mock.setTarget(targetCoordinates);
+                
+                System.out.println("Target GPS: " + targetCoordinates);
+                System.out.println("Distance to target: " + mock.getCurrent().getDistanceTo(targetCoordinates) + " meters");
                 repaint();
             }
 	    });
@@ -191,8 +195,8 @@ public class Canvas extends JPanel {
 	 * Ustawia początkową pozycję
 	 * @param initialCurrent
 	 */
-	public void setInitialCurrent(GPSData initialCurrent) {
-		mock.setCurrentInitial(initialCurrent);
+	public void setInitialPosition(GPSData initialCurrent) {
+		mock.setInitialPosition(initialCurrent);
 		setCurrent(initialCurrent);
 		
 		projection.setWindowOrigin(current, this.getWidth(), this.getHeight());
