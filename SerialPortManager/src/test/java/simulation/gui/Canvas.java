@@ -10,6 +10,11 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -55,6 +60,8 @@ public class Canvas extends JPanel {
 	 */
 	private void initGui() {
 	    this.addMouseListener(new MouseAdapter() {
+	    	private String userHomeFolder = System.getProperty("user.home");
+	    	
 	    	@Override
             public void mousePressed(MouseEvent e) {
 
@@ -64,10 +71,26 @@ public class Canvas extends JPanel {
 
                 mock.setTarget(targetCoordinates);
                 
+                saveToFile(targetCoordinates);
+                
                 System.out.println("Target GPS: " + targetCoordinates);
                 System.out.println("Distance to target: " + mock.getCurrent().getDistanceTo(targetCoordinates) + " meters");
                 repaint();
             }
+
+			/**
+			 * 
+			 */
+			private void saveToFile(GPSData target) {
+				try(FileWriter fw = new FileWriter(userHomeFolder + "/Desktop/targetList.txt", true);
+            	    BufferedWriter bw = new BufferedWriter(fw);
+            	    PrintWriter out = new PrintWriter(bw))
+            	{
+            	    out.println(target.getLatitude() + ", " + target.getLongitude());
+            	} catch (IOException e) {
+            	    //exception handling left as an exercise for the reader
+            	}
+			}
 	    });
 	    //this.setOpaque(true);
 		this.setBackground(Color.WHITE);
