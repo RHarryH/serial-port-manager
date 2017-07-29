@@ -2,30 +2,7 @@ package com.navigation.algorithm;
 
 import java.awt.geom.Point2D;
 
-import com.navigation.GPSData;
-
 public class Angle {
-	
-	/**
-	 * Ustala kąt (w radianach) pomiędzy dwoma lokacjami
-	 * @param a
-	 * @param b
-	 * @return
-	 */
-	public static double getBearing(GPSData a, GPSData b) {
-		double lat1 = Math.toRadians(a.getLatitude());
-		double lat2 = Math.toRadians(b.getLatitude());
-		
-		double longitudeDelta = Math.toRadians(b.getLongitude() - a.getLongitude());
-		
-		double y = Math.sin(longitudeDelta) * Math.cos(lat2);
-		double x = Math.cos(lat1) * Math.sin(lat2) - 
-				Math.sin(lat1) * Math.cos(lat2) * Math.cos(longitudeDelta);
-
-		double direction = Math.atan2(y, x);
-		
-		return direction;
-	}
 	
 	/**
 	 * Zamienia kat (w radianach) na wektor

@@ -58,6 +58,11 @@ public class GPSData {
 		return speed;
 	}
 
+	/**
+	 * Ustala odległość (w metrach) pomiędzy dwoma lokacjami
+	 * @param target współrzędna GPS, z którą mamy wyznaczyć odległość
+	 * @return
+	 */
     public double getDistanceTo(GPSData target) {
     	double lat1 = Math.toRadians(this.getLatitude());
 		double lat2 = Math.toRadians(target.getLatitude());
@@ -73,6 +78,26 @@ public class GPSData {
 		
 		return R * c;
     }
+    
+    /**
+	 * Ustala kąt (w radianach) pomiędzy dwoma lokacjami
+	 * @param second współrzędna GPS, z którą mamy wyznaczyć kąt
+	 * @return
+	 */
+    public double getBearingWith(GPSData second) {
+		double lat1 = Math.toRadians(this.getLatitude());
+		double lat2 = Math.toRadians(second.getLatitude());
+		
+		double longitudeDelta = Math.toRadians(second.getLongitude() - this.getLongitude());
+		
+		double y = Math.sin(longitudeDelta) * Math.cos(lat2);
+		double x = Math.cos(lat1) * Math.sin(lat2) - 
+				Math.sin(lat1) * Math.cos(lat2) * Math.cos(longitudeDelta);
+
+		double direction = Math.atan2(y, x);
+		
+		return direction;
+	}
 
 	public void setSpeed(double speed) {
 		this.speed = speed;
