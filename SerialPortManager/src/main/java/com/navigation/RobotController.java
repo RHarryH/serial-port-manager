@@ -1,6 +1,6 @@
 package com.navigation;
 
-import com.navigation.serial.SerialPortManager;
+import com.navigation.serial.GPSSerialPortManager;
 
 import static com.navigation.algorithm.Command.*;
 
@@ -13,7 +13,7 @@ public class RobotController implements Runnable {
 
 	protected static final double SPEED = 1.0; // prędkość domyślna w kmh
 	protected GPSData previous, current, target;
-	private SerialPortManager spm;
+	private GPSSerialPortManager spm;
 	private volatile boolean interrupt = false;
 
 	private Double heading, desiredAngle;
@@ -26,7 +26,7 @@ public class RobotController implements Runnable {
 	 * Inicjalizuje port szeregowy
 	 */
 	private void initSerialPort() {
-		spm = new SerialPortManager();
+		spm = new GPSSerialPortManager();
 		spm.initialize();
 	}
 	
@@ -108,11 +108,11 @@ public class RobotController implements Runnable {
 		if(target != null && !current.equals(target)) {
 			if(previous != null) {	
 				if(heading == null)
-					setHeading(Angle.denormalizeAngle(Angle.getBearing(previous, current)));
+					setHeading(Angle.denormalizeAngle(previous.getBearingWith(current)));
 				
 				System.out.println("\nController: Heading: " + Math.toDegrees(heading));
 				
-				desiredAngle = Angle.denormalizeAngle(Angle.getBearing(current, target));
+				desiredAngle = Angle.denormalizeAngle(current.getBearingWith(target));
 				System.out.println("Controller: Previous: " + previous + " Current: " + current + " Target: " + target);
 				System.out.println("Controller: Desired angle: " + Math.toDegrees(desiredAngle));
 
