@@ -51,10 +51,5 @@
 			<artifactId>marineapi</artifactId>
 			<version>0.10.0</version>
 		</dependency>
-		<dependency>
-			<groupId>org.rxtx</groupId>
-			<artifactId>RXTXcomm</artifactId>
-			<version>1.0</version>
-		</dependency>
 	</dependencies>
 </project>

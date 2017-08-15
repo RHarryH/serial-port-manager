@@ -87,7 +87,7 @@ public class UniversalSerialPortManager extends SerialPortManager implements Ser
 	    	if(txt.equals("q"))
 	    		break;
 	    	else {
-	    		System.out.println("Text " + txt + " został wysłany.");
+	    		System.out.println("Tekst \"" + txt + "\" został wysłany.");
 	    		spm.sendCommand(txt);
 	    	}
 	    }

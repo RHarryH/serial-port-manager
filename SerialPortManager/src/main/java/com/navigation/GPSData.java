@@ -80,6 +80,27 @@ public class GPSData {
     }
     
     /**
+     * Współrzędne punktu bazując na kierunku i odległości
+     * @param bearing
+     * @param distance odległość w km
+     * @return
+     */
+    public GPSData destinationPointFromDistanceAndBearing(double bearing, double distance) {
+    	double lat1 = Math.toRadians(this.getLatitude());
+    	double lon1 = Math.toRadians(this.getLongitude());
+    	
+    	double dR = distance/R;
+    	
+		double lat2 = Math.asin(Math.sin(lat1) * Math.cos(dR) + 
+    						Math.cos(lat1) * Math.sin(dR) * Math.cos(bearing));
+    	
+    	double lon2 = lon1 + Math.atan2(Math.sin(bearing) * Math.sin(dR) * Math.cos(lat1), 
+    			Math.cos(dR) - Math.sin(lat1) * Math.sin(lat2));
+    	
+    	return new GPSData(Math.toDegrees(lat2), Math.toDegrees(lon2));
+    }
+    
+    /**
 	 * Ustala kąt (w radianach) pomiędzy dwoma lokacjami
 	 * @param second współrzędna GPS, z którą mamy wyznaczyć kąt
 	 * @return
