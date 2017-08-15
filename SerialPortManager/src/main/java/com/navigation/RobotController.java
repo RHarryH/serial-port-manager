@@ -122,16 +122,21 @@ public class RobotController implements Runnable {
 				System.out.println("Controller: Delta: " + Math.toDegrees(angleDelta) + " " + Math.toDegrees(2*Math.PI - angleDelta) + "\n");
 				
 				double radius = (4 * (current.getDistanceTo(target) * 100) / Math.toDegrees(Math.abs(angleDelta))) + 10;
-
+				radius = Math.min(radius, 300000); // limit to 300 meters
+				
 				double leftVelocity = 0.0;
 				double rightVelocity = 0.0;
 				
 				if(angleDelta < 0) { // left
-					rightVelocity = MAX_SPEED_PWM * (1.0 - WHEEL_TRACK / (2 * radius));
-					leftVelocity = (rightVelocity * (radius + WHEEL_TRACK / 2)) / (radius - WHEEL_TRACK / 2);
-				} else if(angleDelta > 0) { // right
+					rightVelocity = MAX_SPEED_PWM;
 					leftVelocity = MAX_SPEED_PWM * (1.0 - WHEEL_TRACK / (2 * radius));
-					rightVelocity = (leftVelocity * (radius + WHEEL_TRACK / 2)) / (radius - WHEEL_TRACK / 2);
+					
+					leftVelocity = Math.max(leftVelocity, 120);
+				} else if(angleDelta > 0) { // right
+					leftVelocity = MAX_SPEED_PWM;
+					rightVelocity = MAX_SPEED_PWM * (1.0 - WHEEL_TRACK / (2 * radius));
+					
+					rightVelocity = Math.max(rightVelocity, 120);
 				}
 
 				//String command = T.getMemonic() + angleDelta + "|" + V.getMemonic() + MAX_SPEED;
