@@ -4,6 +4,7 @@ import java.awt.geom.Point2D;
 import java.util.concurrent.TimeUnit;
 
 import com.navigation.GPSData;
+import com.navigation.RobotController;
 import com.navigation.algorithm.Angle;
 import com.navigation.algorithm.Command;
 
@@ -132,9 +133,69 @@ public class RobotMock {
 	 * Parsuje komendy i symuluje akcję robota, aktualizuje współrzędne i kierunek
 	 * @param commands
 	 */
-	public void parse(String commands) {
-		String[] splitted = commands.split("\\|");
-		System.out.println("Mock: COMMANDS: " + commands);
+	public void parse(String command) {
+		String[] splitted = command.split("\\|");
+		System.out.println("Mock: COMMAND: " + command);
+		
+		Double left = Double.parseDouble(splitted[0]);
+		Double right = Double.parseDouble(splitted[1]);
+		
+		double bearing = getAngle(left, right); 
+		
+		if(bearing > 0) {
+			heading = controller.getHeading();
+			rotation.setTargetDirection(bearing);
+
+			System.out.println("Mock: H:" + Math.toDegrees(heading) + " bearing:" +  Math.round(bearing));
+
+			if(!rotation.isAlive()) {
+				rotation = new Rotation();
+				rotation.setTargetDirection(bearing);
+				rotation.start();
+			}
+		}
+		
+		if(left > 0.0 && right > 0.0) {
+			//if(controller.getHeading() != null) {
+				double speed = (left + right) / 2.0;
+				
+				System.out.println("Mock: AvgPwmSpeed: " + speed);
+				
+				speed = (RobotController.MAX_SPEED * speed) / 255;
+				
+				System.out.println("Mock: Speed: " + speed);
+				System.out.println("Mock: Current: " + current);
+				
+				current = current.destinationPointFromDistanceAndBearing(controller.getHeading() != null ? controller.getHeading() : 0, speed);
+				
+				System.out.println("Mock: New current: " + current);
+				
+				setCurrent(current);
+				// wyznacz kierunek (z korektą kąta)
+				/*Point2D.Double direction = Angle.angleToVector(controller.getHeading() - Math.PI/2);
+
+				System.out.println("Mock: Heading: " + Math.toDegrees(controller.getHeading()));
+
+				// ustaw prędkość
+				speed /= 300000;
+				
+				// zaktualizuj pozycję
+				Point2D.Double world = projection.fromGeoToWorld(current);
+				world.x += direction.x * speed;
+				world.y += direction.y * speed;
+				current = projection.fromWorldToGeo(world);
+
+				setCurrent(current);
+				System.out.println("Mock: Current:" + current + " Direction:" + direction);*/
+			/*} else {
+				current.setLatitude(current.getLatitude() + 0.000002);
+				setCurrent(current);
+			}*/
+		}
+		
+		
+		/*String[] splitted = command.split("\\|");
+		System.out.println("Mock: COMMANDS: " + command);
 		for(String command : splitted) {
 			switch(Command.valueOf(command.substring(0, 1))) {
 			case T: {
@@ -182,12 +243,40 @@ public class RobotMock {
 			default:
 				break;
 			}
+		}*/
+	}
+
+	/**
+	 * @param left
+	 * @param right
+	 */
+	private double getAngle(Double left, Double right) {
+		double distance = controller.getTarget() != null ? 
+				current.getDistanceTo(controller.getTarget()) * 100 : 0;
+
+		if(left > right) { // skręt w lewo
+			double radius = reconstructRadius(left, right);
+			return -reconstructAngle(radius, distance);
+			
+		} else if(left < right) { // skręt w prawo
+			double radius = reconstructRadius(right, left);
+			return reconstructAngle(radius, distance);
 		}
+		
+		return 0.0;
 	}
 	
 	/*private double lerp(double a, double b, double step) {
 	    return a + step * (b - a);
 	}*/
+	
+	private double reconstructRadius(double a, double b) {
+		return (-RobotController.WHEEL_TRACK / 2.0) * (b/a + 1.0) / (b/a - 1.0);
+	}
+	
+	private double reconstructAngle(double radius, double distance) {
+		return Math.toRadians((4 * distance) / (radius - 10));
+	}
 	
 	public void tryRestart() {
 		controller.tryRestart();

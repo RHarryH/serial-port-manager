@@ -11,7 +11,9 @@ import com.navigation.algorithm.Angle;
 
 public class RobotController implements Runnable {
 
-	protected static final double SPEED = 1.0; // prędkość domyślna w kmh
+	public static final double MAX_SPEED_PWM = 255; // 20 m/min
+	public static final double MAX_SPEED = 0.33; // 20 m/min (0.33 m/s)
+	public static final double WHEEL_TRACK = 15; // rozstaw kół, 15 cm
 	protected GPSData previous, current, target;
 	private GPSSerialPortManager spm;
 	private volatile boolean interrupt = false;
@@ -49,7 +51,7 @@ public class RobotController implements Runnable {
 	 * Zatrzymuje robota
 	 */
 	protected void stop() {
-		String command = V.getMemonic() + "0"; // rozkaz zatrzymania
+		String command = "0|0"; // rozkaz zatrzymania
 		spm.sendCommand(command);
 		// zamknij port
 		spm.close();
@@ -119,22 +121,41 @@ public class RobotController implements Runnable {
 				double angleDelta = Math.atan2(Math.sin(desiredAngle - heading), Math.cos(desiredAngle - heading));
 				System.out.println("Controller: Delta: " + Math.toDegrees(angleDelta) + " " + Math.toDegrees(2*Math.PI - angleDelta) + "\n");
 				
-				String commands = T.getMemonic() + angleDelta + "|" + V.getMemonic() + SPEED;
-				sendCommand(commands);
+				double radius = (4 * (current.getDistanceTo(target) * 100) / Math.toDegrees(Math.abs(angleDelta))) + 10;
+
+				double leftVelocity = 0.0;
+				double rightVelocity = 0.0;
+				
+				if(angleDelta < 0) { // left
+					rightVelocity = MAX_SPEED_PWM * (1.0 - WHEEL_TRACK / (2 * radius));
+					leftVelocity = (rightVelocity * (radius + WHEEL_TRACK / 2)) / (radius - WHEEL_TRACK / 2);
+				} else if(angleDelta > 0) { // right
+					leftVelocity = MAX_SPEED_PWM * (1.0 - WHEEL_TRACK / (2 * radius));
+					rightVelocity = (leftVelocity * (radius + WHEEL_TRACK / 2)) / (radius - WHEEL_TRACK / 2);
+				}
+
+				//String command = T.getMemonic() + angleDelta + "|" + V.getMemonic() + MAX_SPEED;
+				String command = leftVelocity + "|" + rightVelocity;
+				System.out.println("Controller: Command: " + leftVelocity + ", " + rightVelocity + " Radius: " + radius + "cm / " + radius/100 + "m");
+				sendCommand(command);
 
 			} else {
-				String command = V.getMemonic() + SPEED; // każ robotowi jechać prosto
+				String command = "255|255"; // każ robotowi jechać prosto
 				sendCommand(command);
 
 				tryRestart();
 			}
 		} else {
-			String command = V.getMemonic() + "0"; // każ robotowi sie zatrzymac
+			String command = "0|0"; // każ robotowi sie zatrzymac
 			sendCommand(command);
 			
 			tryRestart();
 		}
 	}
+	
+	/*private double normalize(double speed) {
+		return (speed - 0) * 255 / ( MAX_SPEED - 0 ) + 0;
+	}*/
 
 	/**
 	 * Dokonuje próby zresetowania ustawień robota.
