@@ -45,13 +45,15 @@ public class RobotMock {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
+				
+				if(controller.getDesiredAngle() == null)
+					break;
 			}
 			System.out.println("Mock(Thread): H:" + Math.toDegrees(heading) + " TD:" +  Math.round(Math.toDegrees(targetDirection)));
 		}
 	}
 
 	private Canvas canvas;
-	private Projection projection = new Projection(22);
 	private RobotControllerTest controller;
 	
 	private Double heading;
@@ -142,7 +144,7 @@ public class RobotMock {
 		
 		double bearing = getAngle(left, right); 
 		
-		if(bearing > 0) {
+		if(bearing != 0.0) {
 			heading = controller.getHeading();
 			rotation.setTargetDirection(bearing);
 
@@ -157,7 +159,7 @@ public class RobotMock {
 		
 		if(left > 0.0 && right > 0.0) {
 			//if(controller.getHeading() != null) {
-				double speed = (left + right) / 2.0;
+				double speed = RobotController.MAX_SPEED_PWM - Math.abs(right - left);//(left + right) / 2.0;
 				
 				System.out.println("Mock: AvgPwmSpeed: " + speed);
 				
@@ -171,79 +173,7 @@ public class RobotMock {
 				System.out.println("Mock: New current: " + current);
 				
 				setCurrent(current);
-				// wyznacz kierunek (z korektą kąta)
-				/*Point2D.Double direction = Angle.angleToVector(controller.getHeading() - Math.PI/2);
-
-				System.out.println("Mock: Heading: " + Math.toDegrees(controller.getHeading()));
-
-				// ustaw prędkość
-				speed /= 300000;
-				
-				// zaktualizuj pozycję
-				Point2D.Double world = projection.fromGeoToWorld(current);
-				world.x += direction.x * speed;
-				world.y += direction.y * speed;
-				current = projection.fromWorldToGeo(world);
-
-				setCurrent(current);
-				System.out.println("Mock: Current:" + current + " Direction:" + direction);*/
-			/*} else {
-				current.setLatitude(current.getLatitude() + 0.000002);
-				setCurrent(current);
-			}*/
 		}
-		
-		
-		/*String[] splitted = command.split("\\|");
-		System.out.println("Mock: COMMANDS: " + command);
-		for(String command : splitted) {
-			switch(Command.valueOf(command.substring(0, 1))) {
-			case T: {
-				double targetDirection = Double.parseDouble(command.substring(1));
-				
-				heading = controller.getHeading();
-				rotation.setTargetDirection(targetDirection);
-
-				System.out.println("Mock: H:" + Math.toDegrees(heading) + " TD:" +  Math.round(Math.toDegrees(targetDirection)));
-
-				if(!rotation.isAlive()) {
-					rotation = new Rotation();
-					rotation.setTargetDirection(targetDirection);
-					rotation.start();
-				}
-
-				break;
-			}
-			case V:
-				double speed = Double.parseDouble(command.substring(1));
-				if(speed != 0) {
-					if(controller.getHeading() != null) {
-						// wyznacz kierunek (z korektą kąta)
-						Point2D.Double direction = Angle.angleToVector(controller.getHeading() - Math.PI/2);
-
-						System.out.println("Mock(V): Heading: " + Math.toDegrees(controller.getHeading()));
-
-						// ustaw prędkość
-						speed /= 300000;
-						
-						// zaktualizuj pozycję
-						Point2D.Double world = projection.fromGeoToWorld(current);
-						world.x += direction.x * speed;
-						world.y += direction.y * speed;
-						current = projection.fromWorldToGeo(world);
-
-						setCurrent(current);
-						System.out.println("Mock(V): Current:" + current + " Direction:" + direction);
-					} else {
-						current.setLatitude(current.getLatitude() + 0.000002);
-						setCurrent(current);
-					}
-				}
-				break;
-			default:
-				break;
-			}
-		}*/
 	}
 
 	/**
@@ -255,11 +185,11 @@ public class RobotMock {
 				current.getDistanceTo(controller.getTarget()) * 100 : 0;
 
 		if(left > right) { // skręt w lewo
-			double radius = reconstructRadius(left, right);
+			double radius = reconstructRadius(left);
 			return -reconstructAngle(radius, distance);
 			
 		} else if(left < right) { // skręt w prawo
-			double radius = reconstructRadius(right, left);
+			double radius = reconstructRadius(right);
 			return reconstructAngle(radius, distance);
 		}
 		
@@ -270,8 +200,9 @@ public class RobotMock {
 	    return a + step * (b - a);
 	}*/
 	
-	private double reconstructRadius(double a, double b) {
-		return (-RobotController.WHEEL_TRACK / 2.0) * (b/a + 1.0) / (b/a - 1.0);
+	private double reconstructRadius(double a) {
+		return - (RobotControllerTest.MAX_SPEED_PWM * RobotControllerTest.WHEEL_TRACK) / 
+				(2 * a - RobotControllerTest.MAX_SPEED_PWM);
 	}
 	
 	private double reconstructAngle(double radius, double distance) {
