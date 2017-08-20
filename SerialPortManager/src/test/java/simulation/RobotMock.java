@@ -1,14 +1,11 @@
 package simulation;
 
-import java.awt.geom.Point2D;
 import java.util.concurrent.TimeUnit;
 
 import com.navigation.GPSData;
 import com.navigation.RobotController;
 import com.navigation.algorithm.Angle;
-import com.navigation.algorithm.Command;
 
-import simulation.convert.Projection;
 import simulation.gui.Canvas;
 
 /**

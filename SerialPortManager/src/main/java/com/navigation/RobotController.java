@@ -2,8 +2,6 @@ package com.navigation;
 
 import com.navigation.serial.GPSSerialPortManager;
 
-import static com.navigation.algorithm.Command.*;
-
 import java.util.concurrent.TimeUnit;
 
 import com.navigation.GPSData;
@@ -14,9 +12,11 @@ public class RobotController implements Runnable {
 	public static final double MAX_SPEED_PWM = 255; // 20 m/min
 	public static final double MAX_SPEED = 0.33; // 20 m/min (0.33 m/s)
 	public static final double WHEEL_TRACK = 15; // rozstaw kół, 15 cm
+	
 	protected GPSData previous, current, target;
 	private GPSSerialPortManager spm;
 	private volatile boolean interrupt = false;
+	private double speed = MAX_SPEED_PWM;
 
 	private Double heading, desiredAngle;
 	
@@ -33,11 +33,27 @@ public class RobotController implements Runnable {
 	}
 	
 	/**
+	 * Pobiera pozycję 
+	 * @return
+	 */
+	public GPSData getCurrent() {
+		return current;
+	}
+	
+	/**
 	 * Ustawia nowy punkt docelowy. Musi on być znany przed uruchomieniem metody run.
 	 * @param target
 	 */
 	public void setTarget(GPSData target) {
 		this.target = target;
+	}
+
+	/**
+	 * Ustawia maksymalną prędkość pojazdu (i przycina do zakresu 120 .. 255)
+	 * @param speed
+	 */
+	public void setSpeed(double speed) {
+		this.speed = Math.min(Math.max(speed, 120), 255);
 	}
 
 	/**
@@ -128,13 +144,13 @@ public class RobotController implements Runnable {
 				double rightVelocity = 0.0;
 				
 				if(angleDelta < 0) { // left
-					rightVelocity = MAX_SPEED_PWM;
-					leftVelocity = MAX_SPEED_PWM * (1.0 - WHEEL_TRACK / (2 * radius));
+					rightVelocity = speed;
+					leftVelocity = speed * (1.0 - WHEEL_TRACK / (2 * radius));
 					
 					leftVelocity = Math.max(leftVelocity, 120);
 				} else if(angleDelta > 0) { // right
-					leftVelocity = MAX_SPEED_PWM;
-					rightVelocity = MAX_SPEED_PWM * (1.0 - WHEEL_TRACK / (2 * radius));
+					leftVelocity = speed;
+					rightVelocity = speed * (1.0 - WHEEL_TRACK / (2 * radius));
 					
 					rightVelocity = Math.max(rightVelocity, 120);
 				}
