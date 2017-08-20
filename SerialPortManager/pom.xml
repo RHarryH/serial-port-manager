@@ -35,7 +35,9 @@
 				<configuration>
 					<archive>
 						<manifest>
-							<mainClass>com.navigation.gui.Simple</mainClass>
+							<addClasspath>true</addClasspath>
+                            <classpathPrefix>lib/</classpathPrefix>
+							<mainClass>com.navigation.serial.UniversalSerialPortManager</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -50,6 +52,11 @@
 			<groupId>net.sf.marineapi</groupId>
 			<artifactId>marineapi</artifactId>
 			<version>0.10.0</version>
+		</dependency>
+		<dependency>
+			<groupId>org.rxtx</groupId>
+			<artifactId>RXTXcomm</artifactId>
+			<version>1.0</version>
 		</dependency>
 	</dependencies>
 </project>
