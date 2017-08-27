@@ -95,6 +95,8 @@ public abstract class SerialPortManager {
 	public void sendCommand(String command) {
 		if(output != null) {
 			try {
+				command += "\n";
+				
 				output.write(command.getBytes(Charset.forName("UTF-8")));
 				output.flush();
 			} catch (IOException e) {
