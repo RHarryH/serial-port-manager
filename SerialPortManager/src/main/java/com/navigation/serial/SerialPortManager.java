@@ -29,7 +29,7 @@ public abstract class SerialPortManager {
 
 	private OutputStream output;
 	private int TIMEOUT = 2000;
-	private int DATARATE = 9600;
+	private int DATARATE = 57600;
 	
 	/**
 	 * Uses default configuration
