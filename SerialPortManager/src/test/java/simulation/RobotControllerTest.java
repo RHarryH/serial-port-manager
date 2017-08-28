@@ -1,7 +1,5 @@
 package simulation;
 
-import static com.navigation.algorithm.Command.V;
-
 import java.lang.Thread.UncaughtExceptionHandler;
 
 import com.navigation.GPSData;
@@ -67,7 +65,7 @@ public class RobotControllerTest extends RobotController {
 	 */
 	@Override
 	public void stop() {
-		String command = V.getMemonic() + "0"; // rozkaz zatrzymania
+		String command = "0|0"; // rozkaz zatrzymania
 		mock.parse(command);
 		
 		System.out.println("Robot stopped");
