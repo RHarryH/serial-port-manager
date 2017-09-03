@@ -41,7 +41,7 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 			@Override
 			public void onException(Exception e) {
 				if(e instanceof IOException) {
-					System.err.println("Błąd we/wy (najprawdopodobniej pusty stream");
+					//System.err.println("Błąd we/wy (najprawdopodobniej pusty stream");
 				}
 			}
 		});

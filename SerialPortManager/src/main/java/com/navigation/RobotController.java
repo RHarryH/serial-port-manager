@@ -102,8 +102,14 @@ public class RobotController implements Runnable {
 	 * Aktualizuje poprzedni i aktualny punkt
 	 */
 	protected void updatePreviousAndCurrent() {
+		GPSData receivedData = spm.getGps();
+		
+		// sprawdz czy nie ma jeszcze informacji o obecnej pozycji i czy informacja odczytana z portu szeregowego zawiera same zera
+		if(current == null && receivedData.getLatitude() == 0 && receivedData.getLongitude() == 0)
+			return;
+		
 		previous = current; // zapamietaj aktualna pozycje jako pozycje poprzednia
-		current = spm.getGps(); // zastap aktualna pozycje daną z portu szeregowego
+		current = receivedData; // zastap aktualna pozycje daną z portu szeregowego
 	}
 	
 	public Double getHeading() {
@@ -182,7 +188,7 @@ public class RobotController implements Runnable {
 	 * Dokonuje próby zresetowania ustawień robota.
 	 */
 	public void tryRestart() {
-		if(current.equals(target)) {
+		if(current != null && current.equals(target)) {
 			target = null;
 			desiredAngle = null;
 			previous = null;
@@ -194,6 +200,7 @@ public class RobotController implements Runnable {
 	 * @param command
 	 */
 	protected void sendCommand(String command) {
+		System.out.println("Command " + command + " was sent");
 		spm.sendCommand(command);
 	}
 }
