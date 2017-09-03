@@ -17,7 +17,12 @@ public class RobotController implements Runnable {
 	
 	protected GPSData previous, current, currentTarget;
 	protected List<GPSData> targets = new ArrayList<GPSData>();
+	
+	private GPSData lastCurrents[] = new GPSData[3]; // działa na zasadzie bufora cyklicznego
+	private int lastCurrentsIndex = 0;
+	
 	private GPSSerialPortManager spm;
+	
 	private volatile boolean interrupt = false;
 	private double speed = MAX_SPEED_PWM;
 
@@ -127,8 +132,33 @@ public class RobotController implements Runnable {
 		if(current == null && receivedData.getLatitude() == 0 && receivedData.getLongitude() == 0)
 			return;
 		
+		logger.info("Received data: " + receivedData);
 		previous = current; // zapamietaj aktualna pozycje jako pozycje poprzednia
-		current = receivedData; // zastap aktualna pozycje daną z portu szeregowego
+		
+		int effectiveIndex = lastCurrentsIndex % 3;
+		lastCurrentsIndex++;
+		lastCurrents[effectiveIndex] = receivedData;
+		
+		if(lastCurrentsIndex < 3)
+			current = receivedData; // zastap aktualna pozycje daną z portu szeregowego
+		else {
+			current = average(lastCurrents);
+			logger.info("Average current: " + current);
+		}
+	}
+	
+	private GPSData average(GPSData[] lastCurrents) {
+		double lat = 0, lon = 0;
+		
+		for(GPSData lastCurrent : lastCurrents) {
+			lat += lastCurrent.getLatitude();
+			lon += lastCurrent.getLongitude();
+		}
+		
+		lat /= lastCurrents.length;
+		lon /= lastCurrents.length;
+		
+		return new GPSData(lat, lon);
 	}
 	
 	public Double getHeading() {
