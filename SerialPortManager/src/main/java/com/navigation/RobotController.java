@@ -3,7 +3,6 @@ package com.navigation;
 import com.navigation.serial.GPSSerialPortManager;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -23,6 +22,8 @@ public class RobotController implements Runnable {
 	private double speed = MAX_SPEED_PWM;
 
 	private Double heading, desiredAngle;
+	
+	protected Logger logger = new Logger(RobotController.class, "Logs/controller.txt");
 	
 	public RobotController() {
 		initSerialPort();
@@ -67,11 +68,11 @@ public class RobotController implements Runnable {
 	}
 
 	/**
-	 * Ustawia maksymalną prędkość pojazdu (i przycina do zakresu 120 .. 255)
+	 * Ustawia maksymalną prędkość pojazdu (i przycina do zakresu 160 .. 255)
 	 * @param speed
 	 */
 	public void setSpeed(double speed) {
-		this.speed = Math.min(Math.max(speed, 120), 255);
+		this.speed = Math.min(Math.max(speed, 160), 255);
 	}
 
 	/**
@@ -90,7 +91,7 @@ public class RobotController implements Runnable {
 		// zamknij port
 		spm.close();
 		
-		System.out.println("Robot stopped");
+		logger.info("Robot stopped");
 	}
 	
 	/**
@@ -152,14 +153,14 @@ public class RobotController implements Runnable {
 				if(heading == null)
 					setHeading(Angle.denormalizeAngle(previous.getBearingWith(current)));
 				
-				System.out.println("\nController: Heading: " + Math.toDegrees(heading));
+				logger.info("Heading: " + Math.toDegrees(heading));
 				
 				desiredAngle = Angle.denormalizeAngle(current.getBearingWith(currentTarget));
-				System.out.println("Controller: Previous: " + previous + " Current: " + current + " Target: " + currentTarget);
-				System.out.println("Controller: Desired angle: " + Math.toDegrees(desiredAngle));
+				logger.info("Previous: " + previous + " Current: " + current + " Target: " + currentTarget);
+				logger.info("Desired angle: " + Math.toDegrees(desiredAngle));
 
 				double angleDelta = Math.atan2(Math.sin(desiredAngle - heading), Math.cos(desiredAngle - heading));
-				System.out.println("Controller: Delta: " + Math.toDegrees(angleDelta) + " " + Math.toDegrees(2*Math.PI - angleDelta) + "\n");
+				logger.info("Delta: " + Math.toDegrees(angleDelta) + " " + Math.toDegrees(2*Math.PI - angleDelta) + "\n");
 				
 				double radius = (4 * (current.getDistanceTo(currentTarget) * 100) / Math.toDegrees(Math.abs(angleDelta))) + 10;
 				radius = Math.min(radius, 300000); // limit to 300 meters
@@ -171,17 +172,16 @@ public class RobotController implements Runnable {
 					rightVelocity = speed;
 					leftVelocity = speed * (1.0 - WHEEL_TRACK / (2 * radius));
 					
-					leftVelocity = Math.max(leftVelocity, 120);
+					leftVelocity = Math.max(leftVelocity, 160);
 				} else if(angleDelta > 0) { // right
 					leftVelocity = speed;
 					rightVelocity = speed * (1.0 - WHEEL_TRACK / (2 * radius));
 					
-					rightVelocity = Math.max(rightVelocity, 120);
+					rightVelocity = Math.max(rightVelocity, 160);
 				}
 
-				//String command = T.getMemonic() + angleDelta + "|" + V.getMemonic() + MAX_SPEED;
 				String command = leftVelocity + "|" + rightVelocity;
-				System.out.println("Controller: Command: " + leftVelocity + ", " + rightVelocity + " Radius: " + radius + "cm / " + radius/100 + "m");
+				logger.info("Command: " + leftVelocity + ", " + rightVelocity + " Radius: " + radius + "cm / " + radius/100 + "m");
 				sendCommand(command);
 
 			} else {
@@ -200,10 +200,6 @@ public class RobotController implements Runnable {
 				currentTarget = targets.get(0);
 				targets.remove(0);
 			}
-			
-			/*Iterator<GPSData> iterator = targets.iterator();
-			if(iterator.hasNext())
-				currentTarget = iterator.next();*/
 		}
 	}
 	
@@ -227,7 +223,7 @@ public class RobotController implements Runnable {
 	 * @param command
 	 */
 	protected void sendCommand(String command) {
-		System.out.println("Command " + command + " was sent");
 		spm.sendCommand(command);
+		logger.info("Command " + command + " was sent\r\n\r\n");
 	}
 }
