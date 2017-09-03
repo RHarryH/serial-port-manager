@@ -19,7 +19,7 @@ public class RobotControllerTest extends RobotController {
 			@Override
 			public void uncaughtException(Thread t, Throwable e) {
 				RobotControllerTest.this.interrupt();
-				System.out.println("Robot stopped");
+				logger.info("Robot stopped");
 				e.printStackTrace();
 				System.exit(-1);
 			}
@@ -77,7 +77,7 @@ public class RobotControllerTest extends RobotController {
 		String command = "0|0"; // rozkaz zatrzymania
 		mock.parse(command);
 		
-		System.out.println("Robot stopped");
+		logger.info("Robot stopped");
 	}
 
 	/**
@@ -94,5 +94,6 @@ public class RobotControllerTest extends RobotController {
 	@Override
 	protected void sendCommand(String command) {
 		mock.parse(command);
+		logger.info("Command " + command + " was sent\r\n\r\n");
 	}
 }

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.navigation.GPSData;
+import com.navigation.Logger;
 import com.navigation.RobotController;
 import com.navigation.algorithm.Angle;
 
@@ -16,6 +17,8 @@ import simulation.gui.Canvas;
  *
  */
 public class RobotMock {
+	
+	protected Logger logger = new Logger(RobotController.class, "Logs/mock.txt");
 	
 	/**
 	 * Wątek odpowiedzialny za symulację obrotu
@@ -47,7 +50,7 @@ public class RobotMock {
 				if(controller.getDesiredAngle() == null)
 					break;
 			}
-			System.out.println("Mock(Thread): H:" + Math.toDegrees(heading) + " TD:" +  Math.round(Math.toDegrees(targetDirection)));
+			logger.info("Thread: H:" + Math.toDegrees(heading) + " TD:" +  Math.round(Math.toDegrees(targetDirection)));
 		}
 	}
 
@@ -151,7 +154,7 @@ public class RobotMock {
 	 */
 	public void parse(String command) {
 		String[] splitted = command.split("\\|");
-		System.out.println("Mock: COMMAND: " + command);
+		logger.info("Received command: " + command);
 		
 		Double left = Double.parseDouble(splitted[0]);
 		Double right = Double.parseDouble(splitted[1]);
@@ -162,7 +165,7 @@ public class RobotMock {
 			heading = controller.getHeading();
 			rotation.setTargetDirection(bearing);
 
-			System.out.println("Mock: H:" + Math.toDegrees(heading) + " bearing:" +  Math.round(bearing));
+			logger.info("H:" + Math.toDegrees(heading) + " bearing:" +  Math.round(bearing));
 
 			if(!rotation.isAlive()) {
 				rotation = new Rotation();
@@ -172,22 +175,23 @@ public class RobotMock {
 		}
 		
 		if(left > 0.0 && right > 0.0) {
-			//if(controller.getHeading() != null) {
-				double speed = RobotController.MAX_SPEED_PWM - Math.abs(right - left);//(left + right) / 2.0;
-				
-				System.out.println("Mock: AvgPwmSpeed: " + speed);
-				
-				speed = (RobotController.MAX_SPEED * speed) / 255;
-				
-				System.out.println("Mock: Speed: " + speed);
-				System.out.println("Mock: Current: " + current);
-				
-				current = current.destinationPointFromDistanceAndBearing(controller.getHeading() != null ? controller.getHeading() : 0, speed);
-				
-				System.out.println("Mock: New current: " + current);
-				
-				setCurrent(current);
+			double speed = RobotController.MAX_SPEED_PWM - Math.abs(right - left);//(left + right) / 2.0;
+			
+			logger.info("AvgPwmSpeed: " + speed);
+			
+			speed = (RobotController.MAX_SPEED * speed) / 255;
+			
+			logger.info("Speed: " + speed);
+			logger.info("Current: " + current);
+			
+			current = current.destinationPointFromDistanceAndBearing(controller.getHeading() != null ? controller.getHeading() : 0, speed);
+			
+			logger.info("New current: " + current);
+			
+			setCurrent(current);
 		}
+		
+		logger.info("\r\n\r\n");
 	}
 
 	/**
@@ -209,10 +213,6 @@ public class RobotMock {
 		
 		return 0.0;
 	}
-	
-	/*private double lerp(double a, double b, double step) {
-	    return a + step * (b - a);
-	}*/
 	
 	private double reconstructRadius(double a) {
 		return - (RobotControllerTest.MAX_SPEED_PWM * RobotControllerTest.WHEEL_TRACK) / 

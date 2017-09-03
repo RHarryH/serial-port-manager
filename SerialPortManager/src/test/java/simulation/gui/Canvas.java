@@ -10,10 +10,6 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Point2D;
 import java.awt.geom.Point2D.Double;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -21,6 +17,7 @@ import java.util.List;
 import javax.swing.JPanel;
 
 import com.navigation.GPSData;
+import com.navigation.Logger;
 import com.navigation.algorithm.Angle;
 
 import simulation.RobotMock;
@@ -39,6 +36,8 @@ public class Canvas extends JPanel {
 
 	private List<Point2D.Double> points = new ArrayList<>();
 	private Point2D.Double current;
+	
+	protected Logger logger = new Logger("", "Logs/simulation.txt");
 
 	public Canvas(boolean b) {
         super(b);
@@ -59,7 +58,7 @@ public class Canvas extends JPanel {
 	 */
 	private void initGui() {
 	    this.addMouseListener(new MouseAdapter() {
-	    	private String userHomeFolder = System.getProperty("user.home");
+	    	private Logger targetLogger = new Logger("", "/Logs/targetList.txt");
 	    	
 	    	@Override
             public void mousePressed(MouseEvent e) {
@@ -72,8 +71,8 @@ public class Canvas extends JPanel {
                 
                 saveToFile(targetCoordinates);
                 
-                System.out.println("Target GPS: " + targetCoordinates);
-                System.out.println("Distance to target: " + mock.getCurrent().getDistanceTo(targetCoordinates) + " meters");
+                logger.info("Target GPS: " + targetCoordinates);
+                logger.info("Distance to target: " + mock.getCurrent().getDistanceTo(targetCoordinates) + " meters");
                 repaint();
             }
 
@@ -81,14 +80,7 @@ public class Canvas extends JPanel {
 			 * 
 			 */
 			private void saveToFile(GPSData target) {
-				try(FileWriter fw = new FileWriter(userHomeFolder + "/Desktop/targetList.txt", true);
-            	    BufferedWriter bw = new BufferedWriter(fw);
-            	    PrintWriter out = new PrintWriter(bw))
-            	{
-            	    out.println(target.getLatitude() + ", " + target.getLongitude());
-            	} catch (IOException e) {
-            	    //exception handling left as an exercise for the reader
-            	}
+				targetLogger.info(target.getLatitude() + ", " + target.getLongitude());
 			}
 	    });
 	    //this.setOpaque(true);
@@ -116,13 +108,15 @@ public class Canvas extends JPanel {
         
         // draw current targer
         if(mock.getCurrentTarget() != null) {
-        	g2.setColor(Color.RED);
 	    	Point p = projection.toWindowCoords(projection.fromGeoToWorld(mock.getCurrentTarget()));
-	        g2.fillOval(p.x - 7, p.y - 7, 14, 14);
-
+	    	
     		// draw line from target to center
         	g2.setColor(Color.GREEN);
         	g2.drawLine(c.x, c.y, p.x, p.y);
+        	
+        	// draw target
+        	g2.setColor(Color.RED);
+	        g2.fillOval(p.x - 7, p.y - 7, 14, 14);
         }
         
         // draw path
