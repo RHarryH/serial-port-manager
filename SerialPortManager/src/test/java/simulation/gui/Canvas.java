@@ -38,7 +38,7 @@ public class Canvas extends JPanel {
 	private RobotMock mock;
 
 	private List<Point2D.Double> points = new ArrayList<>();
-	private Point2D.Double target, current;
+	private Point2D.Double current;
 
 	public Canvas(boolean b) {
         super(b);
@@ -64,11 +64,11 @@ public class Canvas extends JPanel {
 	    	@Override
             public void mousePressed(MouseEvent e) {
 
-	    		target = projection.toWorldCoords(e.getX(), e.getY());
+	    		Point2D.Double target = projection.toWorldCoords(e.getX(), e.getY());
                 
                 GPSData targetCoordinates = projection.fromWorldToGeo(target);
 
-                mock.setTarget(targetCoordinates);
+                mock.addTarget(targetCoordinates);
                 
                 saveToFile(targetCoordinates);
                 
@@ -106,11 +106,23 @@ public class Canvas extends JPanel {
 		Graphics2D g2 = (Graphics2D) g;
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        // draw target
-        if(target != null) {
-	        g2.setColor(Color.RED);
-	    	Point p = projection.toWindowCoords(target);
+        // draw targets
+        List<GPSData> targets = mock.getTargets();
+        for(GPSData target : targets) {
+	        g2.setColor(Color.GRAY);
+	    	Point p = projection.toWindowCoords(projection.fromGeoToWorld(target));
 	        g2.fillOval(p.x - 5, p.y - 5, 10, 10);
+        }
+        
+        // draw current targer
+        if(mock.getCurrentTarget() != null) {
+        	g2.setColor(Color.RED);
+	    	Point p = projection.toWindowCoords(projection.fromGeoToWorld(mock.getCurrentTarget()));
+	        g2.fillOval(p.x - 7, p.y - 7, 14, 14);
+
+    		// draw line from target to center
+        	g2.setColor(Color.GREEN);
+        	g2.drawLine(c.x, c.y, p.x, p.y);
         }
         
         // draw path
@@ -124,14 +136,6 @@ public class Canvas extends JPanel {
         // draw center
         g2.setColor(Color.BLUE);
         g2.fillOval(c.x - 5, c.y - 5, 10, 10);
-        
-        // draw target to center line
-        if(target != null) {
-    		Point t = projection.toWindowCoords(target);
-    		
-        	g2.setColor(Color.GREEN);
-        	g2.drawLine(c.x, c.y, t.x, t.y);
-        }
         
         // draw robot
         g2.setColor(Color.BLACK);

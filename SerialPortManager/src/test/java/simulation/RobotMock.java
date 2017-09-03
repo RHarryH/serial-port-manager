@@ -1,5 +1,6 @@
 package simulation;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import com.navigation.GPSData;
@@ -124,8 +125,24 @@ public class RobotMock {
 	 * Ustaw cel
 	 * @param target
 	 */
-	public void setTarget(GPSData target) {
-		controller.setTarget(target);
+	public void addTarget(GPSData target) {
+		controller.addTarget(target);
+	}
+	
+	/**
+	 * Pobierz aktualny cel
+	 * @return
+	 */
+	public GPSData getCurrentTarget() {
+		return controller.getCurrentTarget();
+	}
+	
+	/**
+	 * Pobierz listę celów
+	 * @return
+	 */
+	public List<GPSData> getTargets() {
+		return controller.getTargets();
 	}
 
 	/**
@@ -178,8 +195,8 @@ public class RobotMock {
 	 * @param right
 	 */
 	private double getAngle(Double left, Double right) {
-		double distance = controller.getTarget() != null ? 
-				current.getDistanceTo(controller.getTarget()) * 100 : 0;
+		double distance = controller.getCurrentTarget() != null ? 
+				current.getDistanceTo(controller.getCurrentTarget()) * 100 : 0;
 
 		if(left > right) { // skręt w lewo
 			double radius = reconstructRadius(left);

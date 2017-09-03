@@ -1,6 +1,7 @@
 package simulation;
 
 import java.lang.Thread.UncaughtExceptionHandler;
+import java.util.List;
 
 import com.navigation.GPSData;
 import com.navigation.RobotController;
@@ -56,8 +57,16 @@ public class RobotControllerTest extends RobotController {
 	 * Pobierz współrzędne celu
 	 * @return
 	 */
-	public GPSData getTarget() {
-		return target;
+	public GPSData getCurrentTarget() {
+		return currentTarget;
+	}
+	
+	/**
+	 * Pobierz listę celów
+	 * @return
+	 */
+	public List<GPSData> getTargets() {
+		return targets;
 	}
 
 	/**
