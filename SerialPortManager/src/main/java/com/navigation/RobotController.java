@@ -56,6 +56,7 @@ public class RobotController implements Runnable {
 	 */
 	public void addTarget(GPSData target) {
 		this.targets.add(target);
+		logger.info("Target added: " + target);
 	}
 	
 	/**
@@ -147,6 +148,11 @@ public class RobotController implements Runnable {
 		}
 	}
 	
+	/**
+	 * Wyznacza średnią 3 ostatnich znanych pozycji
+	 * @param lastCurrents
+	 * @return
+	 */
 	private GPSData average(GPSData[] lastCurrents) {
 		double lat = 0, lon = 0;
 		
@@ -178,7 +184,7 @@ public class RobotController implements Runnable {
 	 */
 	private void sendCommands() {
 		
-		if(currentTarget != null && !current.equals(currentTarget)) {
+		if(current != null && currentTarget != null && !current.equals(currentTarget)) {
 			if(previous != null) {	
 				if(heading == null)
 					setHeading(Angle.denormalizeAngle(previous.getBearingWith(current)));
@@ -202,16 +208,16 @@ public class RobotController implements Runnable {
 					rightVelocity = speed;
 					leftVelocity = speed * (1.0 - WHEEL_TRACK / (2 * radius));
 					
-					leftVelocity = Math.max(leftVelocity, 160);
+					leftVelocity = Math.round(Math.max(leftVelocity, 160));
 				} else if(angleDelta > 0) { // right
 					leftVelocity = speed;
 					rightVelocity = speed * (1.0 - WHEEL_TRACK / (2 * radius));
 					
-					rightVelocity = Math.max(rightVelocity, 160);
+					rightVelocity = Math.round(Math.max(rightVelocity, 160));
 				}
 
-				String command = leftVelocity + "|" + rightVelocity;
-				logger.info("Command: " + leftVelocity + ", " + rightVelocity + " Radius: " + radius + "cm / " + radius/100 + "m");
+				String command = (int)leftVelocity + "|" + (int)rightVelocity;
+				logger.info("Command: " + (int)leftVelocity + ", " + (int)rightVelocity + " Radius: " + radius + "cm / " + radius/100 + "m");
 				sendCommand(command);
 
 			} else {

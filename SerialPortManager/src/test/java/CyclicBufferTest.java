@@ -1,26 +1,24 @@
 import java.util.Arrays;
 import java.util.Random;
 
-import com.navigation.GPSData;
-
 public class CyclicBufferTest {
 	
-	private static int lastCurrents[] = new int[3];
+	private static float lastCurrents[] = new float[3];
 	private static int lastCurrentsIndex = 0;
 	
 	public static void main(String[] args) {
 		Random r = new Random();
 		
-		int current = 0;
+		float current = 0;
 		
 		for(int i = 0; i < 10; i++) {
-			int receivedData = r.nextInt() % 10 + 1;
+			float receivedData = r.nextFloat() * 10;
 			
 			int effectiveIndex = lastCurrentsIndex % 3;
 			lastCurrentsIndex++;
 			lastCurrents[effectiveIndex] = receivedData;
 			
-			System.out.println("Index: " + lastCurrentsIndex + " Effective index: " + effectiveIndex);
+			System.out.println("Received data: " + receivedData + " Index: " + lastCurrentsIndex + " Effective index: " + effectiveIndex);
 			System.out.println("Content" + Arrays.toString(lastCurrents));
 			
 			if(lastCurrentsIndex < 3) {
@@ -30,13 +28,15 @@ public class CyclicBufferTest {
 				current = average(lastCurrents);
 				System.out.println("Average current: " + current);
 			}
+			
+			System.out.println();
 		}
 	}
 	
-	private static int average(int[] lastCurrents) {
-		int avg = 0;
+	private static float average(float[] lastCurrents) {
+		float avg = 0;
 		
-		for(int lastCurrent : lastCurrents)
+		for(float lastCurrent : lastCurrents)
 			avg += lastCurrent;
 
 		avg /= lastCurrents.length;

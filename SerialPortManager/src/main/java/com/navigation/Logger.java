@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 
 public class Logger {
 	
@@ -39,9 +40,9 @@ public class Logger {
     	    PrintWriter out = new PrintWriter(bw))
     	{
     	    if(className.isEmpty())
-    	    	out.println(text);
+    	    	out.println("[" + LocalDateTime.now() + "]: "+ text);
     	    else 
-    	    	out.println(className + ": " + text);
+    	    	out.println(className + "[" + LocalDateTime.now() + "]: " + text);
     	} catch (IOException e) {
     	    //exception handling left as an exercise for the reader
     	}
