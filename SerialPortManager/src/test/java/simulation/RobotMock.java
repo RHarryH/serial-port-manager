@@ -156,8 +156,8 @@ public class RobotMock {
 		String[] splitted = command.split("\\|");
 		logger.info("Received command: " + command);
 		
-		Double left = Double.parseDouble(splitted[0]);
-		Double right = Double.parseDouble(splitted[1]);
+		Integer left = Integer.parseInt(splitted[0]);
+		Integer right = Integer.parseInt(splitted[1]);
 		
 		double bearing = getAngle(left, right); 
 		
@@ -198,7 +198,7 @@ public class RobotMock {
 	 * @param left
 	 * @param right
 	 */
-	private double getAngle(Double left, Double right) {
+	private double getAngle(Integer left, Integer right) {
 		double distance = controller.getCurrentTarget() != null ? 
 				current.getDistanceTo(controller.getCurrentTarget()) * 100 : 0;
 

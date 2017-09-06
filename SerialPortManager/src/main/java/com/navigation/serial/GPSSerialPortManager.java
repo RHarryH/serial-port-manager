@@ -5,6 +5,7 @@ import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
 
 import com.navigation.GPSData;
+import com.navigation.Logger;
 
 import net.sf.marineapi.nmea.event.SentenceEvent;
 import net.sf.marineapi.nmea.event.SentenceListener;
@@ -23,6 +24,8 @@ import net.sf.marineapi.nmea.sentence.VTGSentence;
 public class GPSSerialPortManager extends SerialPortManager implements SentenceListener {
 	private final GPSData gps = new GPSData();
 	private InputStream input;
+	
+	private Logger logger = new Logger(GPSSerialPortManager.class, "Logs/raw.txt");
 	
 	protected void createInputStream() throws IOException {
 		input = serialPort.getInputStream();
@@ -76,20 +79,27 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 	public void sentenceRead(SentenceEvent event) {
 		try {
 			switch(event.getSentence().getSentenceId()) {
-			// vector track an Speed over the Ground
-			case "VTG":
-				VTGSentence vtg = (VTGSentence) event.getSentence();
-				
-				gps.setSpeed(vtg.getSpeedKmh());
-				break;
-			// fix information
-			case "GGA":
-				GGASentence gga = (GGASentence) event.getSentence();
-				
-				gps.setPosition(gga.getPosition());
-				break;
+				// vector track an Speed over the Ground
+				case "VTG":
+					VTGSentence vtg = (VTGSentence) event.getSentence();
+					logger.info("VTG: " + vtg.toSentence());
+					
+					if(vtg.isValid())
+						gps.setSpeed(vtg.getSpeedKmh());
+					break;
+				// fix information
+				case "GGA":
+					GGASentence gga = (GGASentence) event.getSentence();
+					logger.info("GGA: " + gga.toSentence());
+					
+					if(gga.isValid())
+						gps.setPosition(gga.getPosition());
+					break;
+				default:
+					logger.info("Unused: " + event.getSentence().toSentence());
 			}
 		}catch(DataNotAvailableException e) {
+			logger.info(e.getMessage());
 			// this exception is ignored, if data isn't available we print nothing
 		}
 	}

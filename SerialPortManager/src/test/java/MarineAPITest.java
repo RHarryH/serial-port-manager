@@ -80,13 +80,13 @@ public class MarineAPITest implements SentenceListener {
 			case "VTG":
 				VTGSentence vtg = (VTGSentence) event.getSentence();
 	
-				System.out.println("VTG: " + vtg.getSpeedKmh());
+				System.out.println("VTG: " + vtg.getSpeedKmh() + " " + vtg.isProprietary() + " " + vtg.isValid());
 				break;
 			// fix information (most important!) 
 			case "GGA":
 				GGASentence gga = (GGASentence) event.getSentence();
 	
-				System.out.println("GGA: " + gga.getPosition());
+				System.out.println("GGA: " + gga.getPosition() + " " + gga.isProprietary() + " " + gga.isValid());
 				break;
 			// overall Satellite data 
 			/*case "GSA":
