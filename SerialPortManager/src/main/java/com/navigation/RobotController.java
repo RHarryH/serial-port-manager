@@ -132,8 +132,14 @@ public class RobotController implements Runnable {
 		// sprawdz czy nie ma jeszcze informacji o obecnej pozycji i czy informacja odczytana z portu szeregowego zawiera same zera
 		if(current == null && receivedData.getLatitude() == 0 && receivedData.getLongitude() == 0)
 			return;
-		
+
 		logger.info("Received data: " + receivedData);
+		
+		if(receivedData.getDistanceTo(current) > 2) {
+			logger.info("Distance between current and received is higher than 2m!");
+			return;
+		}
+
 		previous = current; // zapamietaj aktualna pozycje jako pozycje poprzednia
 		
 		int effectiveIndex = lastCurrentsIndex % 3;
