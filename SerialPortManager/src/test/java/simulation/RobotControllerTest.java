@@ -36,7 +36,7 @@ public class RobotControllerTest extends RobotController {
 		this.previous = this.current;
 		this.current = newCurrent;
 	}
-	
+
 	/**
 	 * Ustawia aktualną pozycję robota (użyte podczas inicjalizacji)
 	 * @param newCurrent
@@ -45,6 +45,15 @@ public class RobotControllerTest extends RobotController {
 		this.current = newCurrent;
 	}
 	
+	
+	/**
+	 * Nie rób nic. Kierunek jest ustalany w wątku obracającym wirtualnego robota.
+	 */
+	@Override
+	protected void setHeading() {
+
+	}
+
 	/**
 	 * Pobierz współrzedne aktualnej pozycji
 	 * @return

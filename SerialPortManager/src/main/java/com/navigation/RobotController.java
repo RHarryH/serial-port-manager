@@ -26,7 +26,7 @@ public class RobotController implements Runnable {
 	private volatile boolean interrupt = false;
 	private double speed = MAX_SPEED_PWM;
 
-	private Double heading, desiredAngle;
+	private Double heading = 0.0, desiredAngle;
 	
 	protected Logger logger = new Logger(RobotController.class, "Logs/controller.txt");
 	
@@ -135,8 +135,8 @@ public class RobotController implements Runnable {
 
 		logger.info("Received data: " + receivedData);
 		
-		if(receivedData.getDistanceTo(current) > 2) {
-			logger.info("Distance between current and received is higher than 2m!");
+		if(current != null && receivedData.getDistanceTo(current) > 5) {
+			logger.info("Distance between current and received is higher than 5m!");
 			return;
 		}
 
@@ -192,8 +192,8 @@ public class RobotController implements Runnable {
 		
 		if(current != null && currentTarget != null && !current.equals(currentTarget)) {
 			if(previous != null) {	
-				if(heading == null)
-					setHeading(Angle.denormalizeAngle(previous.getBearingWith(current)));
+				//if(heading == null)
+				setHeading();
 				
 				logger.info("Heading: " + Math.toDegrees(heading));
 				
@@ -204,22 +204,18 @@ public class RobotController implements Runnable {
 				double angleDelta = Math.atan2(Math.sin(desiredAngle - heading), Math.cos(desiredAngle - heading));
 				logger.info("Delta: " + Math.toDegrees(angleDelta) + " " + Math.toDegrees(2*Math.PI - angleDelta) + "\n");
 				
-				double radius = (4 * (current.getDistanceTo(currentTarget) * 100) / Math.toDegrees(Math.abs(angleDelta))) + 10;
-				radius = Math.min(radius, 300000); // limit to 300 meters
+				double radius = 600 / Math.toDegrees(Math.abs(angleDelta)) + 35;
+				radius = Math.min(radius, 500000); // limit to 500 meters
 				
 				double leftVelocity = 0.0;
 				double rightVelocity = 0.0;
 				
 				if(angleDelta < 0) { // left
 					rightVelocity = speed;
-					leftVelocity = speed * (1.0 - WHEEL_TRACK / (2 * radius));
-					
-					leftVelocity = Math.round(Math.max(leftVelocity, 160));
+					leftVelocity = speed * (radius - WHEEL_TRACK / 2) / (radius + WHEEL_TRACK / 2);
 				} else if(angleDelta > 0) { // right
 					leftVelocity = speed;
-					rightVelocity = speed * (1.0 - WHEEL_TRACK / (2 * radius));
-					
-					rightVelocity = Math.round(Math.max(rightVelocity, 160));
+					rightVelocity = speed * (radius - WHEEL_TRACK / 2) / (radius + WHEEL_TRACK / 2);
 				}
 
 				String command = (int)leftVelocity + "|" + (int)rightVelocity;
@@ -243,6 +239,13 @@ public class RobotController implements Runnable {
 				targets.remove(0);
 			}
 		}
+	}
+
+	/**
+	 * Ustawia kierunek. Wydzielone do funkcji aby można było kontrolować tą wartość takeże w testach.
+	 */
+	protected void setHeading() {
+		setHeading(Angle.denormalizeAngle(previous.getBearingWith(current)));
 	}
 	
 	/*private double normalize(double speed) {

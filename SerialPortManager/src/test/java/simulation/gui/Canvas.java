@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.RenderingHints;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.AffineTransform;
@@ -83,6 +85,38 @@ public class Canvas extends JPanel {
 				targetLogger.info(target.getLatitude() + ", " + target.getLongitude());
 			}
 	    });
+	    
+	    this.addKeyListener(new KeyListener() {
+
+			@Override
+			public void keyTyped(KeyEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void keyPressed(KeyEvent e) {
+				if(e.getKeyCode() == KeyEvent.VK_T) {
+					GPSData targetCoordinates = new GPSData(50.06761654823667, 19.922378818261905);
+					
+					mock.addTarget(targetCoordinates);
+					
+					//setInitialPosition(new GPSData(50.06714, 19.92271));
+	                
+	                logger.info("Target GPS: " + targetCoordinates);
+	                logger.info("Distance to target: " + mock.getCurrent().getDistanceTo(targetCoordinates) + " meters");
+	                repaint();
+		        }
+			}
+
+			@Override
+			public void keyReleased(KeyEvent e) {
+				// TODO Auto-generated method stub
+				
+			}
+	    	
+	    });
+	    
 	    //this.setOpaque(true);
 		this.setBackground(Color.WHITE);
 	}
