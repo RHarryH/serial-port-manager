@@ -26,12 +26,15 @@ public class SimulationFrame extends JFrame {
         panel.add(label);
         
         Canvas canvas = new Canvas(true);
+        canvas.setFocusable(true);
+        canvas.requestFocusInWindow();
         panel.add(canvas);
 
         // display the window
         this.setVisible(true);
         
         // zainicjuj wszystko
-        new RobotMock(new GPSData(50.865449, 20.716749), canvas);
+        new RobotMock(new GPSData(50.06714, 19.92271), canvas);
+        //new RobotMock(new GPSData(50.865449, 20.716749), canvas);
 	}
 }
