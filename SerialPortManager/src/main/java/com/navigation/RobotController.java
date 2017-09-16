@@ -14,6 +14,7 @@ public class RobotController implements Runnable {
 	public static final double MAX_SPEED_PWM = 255; // 20 m/min
 	public static final double MAX_SPEED = 0.33; // 20 m/min (0.33 m/s)
 	public static final double WHEEL_TRACK = 15; // rozstaw kół, 15 cm
+	private static final int MAX_ATTEMPTS = 5; // maksymalna liczba sprawdzeń dystansu
 	
 	protected GPSData previous, current, currentTarget;
 	protected List<GPSData> targets = new ArrayList<GPSData>();
@@ -27,6 +28,8 @@ public class RobotController implements Runnable {
 	private double speed = MAX_SPEED_PWM;
 
 	private Double heading = 0.0, desiredAngle;
+	
+	private int attemptsNo = MAX_ATTEMPTS;
 	
 	protected Logger logger = new Logger(RobotController.class, "Logs/controller.txt");
 	
@@ -134,15 +137,32 @@ public class RobotController implements Runnable {
 			return;
 
 		logger.info("Received data: " + receivedData);
+
+		/* Jeśli odległość między punktami jest większa niż 4 metrów - ignoruj.
+		   Jeśli 5 współrzędnych pod rząd zostanie zignorowanych to następna zostanie uwzględniona.
+		   Jest to zabezpieczenie przed sytuacją kiedy robot mimo wszystko jechał w poprawnym kierunku
+		   ale GPS przez pewien okres czasu dawał błędne dane. Wtedy robot mógł się zablokować na jednym
+		   kierunku i nigdy nie odzyskać
+		*/
+		if(current != null && receivedData.getDistanceTo(current) > 4 && attemptsNo > 0) {
+			attemptsNo--; // zmniejsz liczbę prób
+			logger.info("Distance between current and received is higher than 4m. Ignored");
+			return;
+		}
 		
-		if(current != null && receivedData.getDistanceTo(current) > 5) {
-			logger.info("Distance between current and received is higher than 5m!");
+		attemptsNo = MAX_ATTEMPTS; // zresetuj liczbę prób
+		
+		int effectiveIndex = lastCurrentsIndex % 3;
+		
+		// jeśli ostatnia znana wartość jest identyczne z otrzymaną to ignorujemy
+		// pozwoli to zachować ostatni znany prawidłowy kierunek jazdy robota
+		if(lastCurrents[effectiveIndex].equals(receivedData)) {
+			logger.info("Received data is the same as last know value. Ignored");
 			return;
 		}
 
 		previous = current; // zapamietaj aktualna pozycje jako pozycje poprzednia
 		
-		int effectiveIndex = lastCurrentsIndex % 3;
 		lastCurrentsIndex++;
 		lastCurrents[effectiveIndex] = receivedData;
 		
