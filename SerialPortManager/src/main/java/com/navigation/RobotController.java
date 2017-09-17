@@ -153,10 +153,11 @@ public class RobotController implements Runnable {
 		attemptsNo = MAX_ATTEMPTS; // zresetuj liczbę prób
 		
 		int effectiveIndex = lastCurrentsIndex % 3;
+		GPSData lastCurrent = lastCurrents[effectiveIndex];
 		
 		// jeśli ostatnia znana wartość jest identyczne z otrzymaną to ignorujemy
 		// pozwoli to zachować ostatni znany prawidłowy kierunek jazdy robota
-		if(lastCurrents[effectiveIndex].equals(receivedData)) {
+		if(lastCurrent != null && lastCurrent.equalsPrecise(receivedData)) {
 			logger.info("Received data is the same as last know value. Ignored");
 			return;
 		}
@@ -291,4 +292,9 @@ public class RobotController implements Runnable {
 		spm.sendCommand(command);
 		logger.info("Command " + command + " was sent\r\n\r\n");
 	}
+	
+	/*public static void main(String args[]) {
+		RobotController rc = new RobotController();
+		rc.run();
+	}*/
 }

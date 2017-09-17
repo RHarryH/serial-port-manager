@@ -158,6 +158,22 @@ public class GPSData {
 
 		return false;
 	}
+
+	public boolean equalsPrecise(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GPSData other = (GPSData) obj;
+		
+		if(new Double(this.latitude).equals(other.latitude) &&
+		   new Double(this.longitude).equals(other.longitude))
+			return true;
+
+		return false;
+	}
 	
 	public static void main(String args[]) {
 		GPSData a = new GPSData();
@@ -166,6 +182,10 @@ public class GPSData {
 		GPSData b = new GPSData();
 		b.setPosition(new Position(50.8653774, 20.7168330));
 		
+		GPSData c = new GPSData();
+		c.setPosition(new Position(50.8653772, 20.7168326));
+		
 		System.out.println(a.equals(b));
+		System.out.println(a.equalsPrecise(c));
 	}
 }
