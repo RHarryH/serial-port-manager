@@ -131,39 +131,82 @@ public class RobotController implements Runnable {
 	 */
 	protected void updatePreviousAndCurrent() {
 		GPSData receivedData = spm.getGps();
-		
-		// sprawdz czy nie ma jeszcze informacji o obecnej pozycji i czy informacja odczytana z portu szeregowego zawiera same zera
-		if(current == null && receivedData.getLatitude() == 0 && receivedData.getLongitude() == 0)
+
+		if(ignoreZerosOnStart(receivedData))
 			return;
 
 		logger.info("Received data: " + receivedData);
 
-		/* Jeśli odległość między punktami jest większa niż 4 metrów - ignoruj.
-		   Jeśli 5 współrzędnych pod rząd zostanie zignorowanych to następna zostanie uwzględniona.
-		   Jest to zabezpieczenie przed sytuacją kiedy robot mimo wszystko jechał w poprawnym kierunku
-		   ale GPS przez pewien okres czasu dawał błędne dane. Wtedy robot mógł się zablokować na jednym
-		   kierunku i nigdy nie odzyskać
-		*/
+		if(ignoreDistantResult(receivedData) || ignoreEqualResult(receivedData))
+			return;
+
+		previous = current; // zapamietaj aktualna pozycje jako pozycje poprzednia
+		
+		assignToCurrent(receivedData);
+	}
+
+	/**
+	 * Sprawdz czy nie ma jeszcze informacji o obecnej pozycji i czy informacja odczytana z portu szeregowego zawiera same zera
+	 * @param receivedData
+	 * @return
+	 */
+	private boolean ignoreZerosOnStart(GPSData receivedData) {
+		if(current == null && receivedData.getLatitude() == 0 && receivedData.getLongitude() == 0)
+			return true;
+		
+		return false;
+	}
+
+	/** 
+	 * Jeśli odległość między punktami jest większa niż 4 metrów - ignoruj.
+	 * Jeśli 5 współrzędnych pod rząd zostanie zignorowanych to następna zostanie uwzględniona.
+	 * Jest to zabezpieczenie przed sytuacją kiedy robot mimo wszystko jechał w poprawnym kierunku
+	 * ale GPS przez pewien okres czasu dawał błędne dane. Wtedy robot mógł się zablokować na jednym
+	 * kierunku i nigdy nie odzyskać
+	 * @param receivedData
+	 * @return
+	 */
+	private boolean ignoreDistantResult(GPSData receivedData) {
 		if(current != null && receivedData.getDistanceTo(current) > 4 && attemptsNo > 0) {
 			attemptsNo--; // zmniejsz liczbę prób
 			logger.info("Distance between current and received is higher than 4m. Ignored");
-			return;
+			return true;
 		}
 		
 		attemptsNo = MAX_ATTEMPTS; // zresetuj liczbę prób
 		
-		int effectiveIndex = lastCurrentsIndex % 3;
-		GPSData lastCurrent = lastCurrents[effectiveIndex];
-		
-		// jeśli ostatnia znana wartość jest identyczne z otrzymaną to ignorujemy
-		// pozwoli to zachować ostatni znany prawidłowy kierunek jazdy robota
-		if(lastCurrent != null && lastCurrent.equalsPrecise(receivedData)) {
-			logger.info("Received data is the same as last know value. Ignored");
-			return;
-		}
+		return false;
+	}
 
-		previous = current; // zapamietaj aktualna pozycje jako pozycje poprzednia
+	/**
+	 * Ignoruj wynik jeśli jest on identyczny z poprzednim
+	 * @param receivedData
+	 * @return
+	 */
+	private boolean ignoreEqualResult(GPSData receivedData) {
+		if(lastCurrentsIndex > 0) {
+			int previousEffectiveIndex = (lastCurrentsIndex - 1) % 3;
+			GPSData lastCurrent = lastCurrents[previousEffectiveIndex];
+			
+			// jeśli ostatnia znana wartość jest identyczne z otrzymaną to ignorujemy
+			// pozwoli to zachować ostatni znany prawidłowy kierunek jazdy robota
+			if(lastCurrent != null && lastCurrent.equalsPrecise(receivedData)) {
+				logger.info("Received data is the same as last know value. Ignored");
+				return true;
+			}
+		}
 		
+		return false;
+	}
+
+	/**
+	 * Przypisz otrzymaną wartość do zmiennej przechowującą aktualną wartość. Wartość ta jest też
+	 * wpisywana do bufora cyklicznego. Jeśli bufor będzie pełny, aktualną wartością będzie średnia
+	 * wartości z bufora.
+	 * @param receivedData
+	 */
+	private void assignToCurrent(GPSData receivedData) {
+		int effectiveIndex = lastCurrentsIndex % 3;
 		lastCurrentsIndex++;
 		lastCurrents[effectiveIndex] = receivedData;
 		
