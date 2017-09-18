@@ -4,6 +4,7 @@ import net.sf.marineapi.nmea.util.Position;
 
 public class GPSData {
 	private static final double EPS = 0.000005; // błąd
+	private static final double EPS_PRECISE = 0.00000001; // błąd przy dokładnym porównaniu
 	private static final double R = 6371e3; // promien Ziemi w metrach
 	
 	private double latitude, // szerokosc geogr.
@@ -158,7 +159,7 @@ public class GPSData {
 
 		return false;
 	}
-
+	
 	public boolean equalsPrecise(Object obj) {
 		if (this == obj)
 			return true;
@@ -168,8 +169,8 @@ public class GPSData {
 			return false;
 		GPSData other = (GPSData) obj;
 		
-		if(new Double(this.latitude).equals(other.latitude) &&
-		   new Double(this.longitude).equals(other.longitude))
+		if(Math.abs(this.latitude - other.latitude) < EPS_PRECISE &&
+		   Math.abs(this.longitude - other.longitude) < EPS_PRECISE)
 			return true;
 
 		return false;
@@ -183,9 +184,13 @@ public class GPSData {
 		b.setPosition(new Position(50.8653774, 20.7168330));
 		
 		GPSData c = new GPSData();
-		c.setPosition(new Position(50.8653772, 20.7168326));
+		c.setPosition(new Position(50.8653772, 20.668126666666666));
+		
+		GPSData d = new GPSData();
+		d.setPosition(new Position(50.8653772, 20.668125));
 		
 		System.out.println(a.equals(b));
-		System.out.println(a.equalsPrecise(c));
+		System.out.println(c + "==" + d);
+		System.out.println(c.equalsPrecise(d));
 	}
 }
