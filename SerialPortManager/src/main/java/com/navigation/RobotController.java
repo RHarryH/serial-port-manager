@@ -187,7 +187,7 @@ public class RobotController implements Runnable {
 		if(lastCurrentsIndex > 0) {
 			int previousEffectiveIndex = (lastCurrentsIndex - 1) % 3;
 			GPSData lastCurrent = lastCurrents[previousEffectiveIndex];
-			
+
 			// jeśli ostatnia znana wartość jest identyczne z otrzymaną to ignorujemy
 			// pozwoli to zachować ostatni znany prawidłowy kierunek jazdy robota
 			if(lastCurrent != null && lastCurrent.equalsPrecise(receivedData)) {
@@ -208,7 +208,7 @@ public class RobotController implements Runnable {
 	private void assignToCurrent(GPSData receivedData) {
 		int effectiveIndex = lastCurrentsIndex % 3;
 		lastCurrentsIndex++;
-		lastCurrents[effectiveIndex] = receivedData;
+		lastCurrents[effectiveIndex] = new GPSData(receivedData);
 		
 		if(lastCurrentsIndex < 3)
 			current = receivedData; // zastap aktualna pozycje daną z portu szeregowego
