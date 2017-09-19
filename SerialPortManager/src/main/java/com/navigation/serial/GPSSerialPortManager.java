@@ -98,7 +98,8 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 				default:
 					logger.info("Unused: " + event.getSentence().toSentence());
 			}
-		}catch(DataNotAvailableException|IndexOutOfBoundsException e) {
+		//}catch(DataNotAvailableException|IndexOutOfBoundsException e) {
+		}catch(Exception e) {
 			logger.info(e.getMessage());
 		}
 	}
