@@ -18,7 +18,7 @@ import simulation.gui.Canvas;
  */
 public class RobotMock {
 	
-	protected Logger logger = new Logger(RobotController.class, "Logs/mock.txt");
+	protected Logger logger = new Logger(RobotController.class, "Logs/mock");
 	
 	/**
 	 * Wątek odpowiedzialny za symulację obrotu
