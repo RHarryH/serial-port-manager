@@ -31,7 +31,7 @@ public class RobotController implements Runnable {
 	
 	private int attemptsNo = MAX_ATTEMPTS;
 	
-	protected Logger logger = new Logger(RobotController.class, "Logs/controller.txt");
+	protected Logger logger = new Logger(RobotController.class, "Logs/controller");
 	
 	public RobotController() {
 		initSerialPort();

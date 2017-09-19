@@ -25,7 +25,7 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 	private final GPSData gps = new GPSData();
 	private InputStream input;
 	
-	private Logger logger = new Logger(GPSSerialPortManager.class, "Logs/raw.txt");
+	private Logger logger = new Logger(GPSSerialPortManager.class, "Logs/raw");
 	
 	protected void createInputStream() throws IOException {
 		input = serialPort.getInputStream();

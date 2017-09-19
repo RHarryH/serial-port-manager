@@ -39,7 +39,7 @@ public class Canvas extends JPanel {
 	private List<Point2D.Double> points = new ArrayList<>();
 	private Point2D.Double current;
 	
-	protected Logger logger = new Logger("", "Logs/simulation.txt");
+	protected Logger logger = new Logger("", "Logs/simulation");
 
 	public Canvas(boolean b) {
         super(b);
@@ -60,7 +60,7 @@ public class Canvas extends JPanel {
 	 */
 	private void initGui() {
 	    this.addMouseListener(new MouseAdapter() {
-	    	private Logger targetLogger = new Logger("", "/Logs/targetList.txt");
+	    	private Logger targetLogger = new Logger("", "/Logs/targetList");
 	    	
 	    	@Override
             public void mousePressed(MouseEvent e) {

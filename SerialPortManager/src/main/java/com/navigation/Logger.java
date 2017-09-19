@@ -8,6 +8,7 @@ import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Logger {
 	
@@ -15,13 +16,16 @@ public class Logger {
 	private String className, logName;
 	
 	private Logger(String logName) {
-		File file = new File(userHomeFolder + "/Desktop/" + logName);
+		DateTimeFormatter timeStampPattern = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
+		
+		String finalLogName = logName + "_" + timeStampPattern.format(LocalDateTime.now()) + ".log";
+		File file = new File(userHomeFolder + "/Desktop/" + finalLogName);
 
 		if (!Files.exists(Paths.get(file.getParent())))
 			if(!file.getParentFile().mkdirs())
 				System.out.println("Directory creation failed");
 		
-		this.logName = logName;
+		this.logName = finalLogName;
 	}
 	
 	public Logger(Class<?> c, String logName) {
@@ -44,7 +48,7 @@ public class Logger {
     	    else 
     	    	out.println(className + "[" + LocalDateTime.now() + "]: " + text);
     	} catch (IOException e) {
-    	    //exception handling left as an exercise for the reader
+    	    System.err.println(e);
     	}
 	}
 }
