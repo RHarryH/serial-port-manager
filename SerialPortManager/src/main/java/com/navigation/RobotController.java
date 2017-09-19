@@ -118,7 +118,10 @@ public class RobotController implements Runnable {
 				e.printStackTrace();
 			} 
 
-			updatePreviousAndCurrent();
+			if(updatePreviousAndCurrent() == -2) {
+				driveStraight();
+				continue;
+			}
 
 	    	sendCommands();
 	    }
@@ -129,20 +132,22 @@ public class RobotController implements Runnable {
 	/**
 	 * Aktualizuje poprzedni i aktualny punkt
 	 */
-	protected void updatePreviousAndCurrent() {
+	protected int updatePreviousAndCurrent() {
 		GPSData receivedData = spm.getGps();
 
 		if(ignoreZerosOnStart(receivedData))
-			return;
+			return -1;
 
 		logger.info("Received data: " + receivedData);
 
 		if(ignoreDistantResult(receivedData) || ignoreEqualResult(receivedData))
-			return;
+			return -2;
 
 		previous = current; // zapamietaj aktualna pozycje jako pozycje poprzednia
 		
 		assignToCurrent(receivedData);
+		
+		return 0;
 	}
 
 	/**
@@ -287,8 +292,7 @@ public class RobotController implements Runnable {
 				sendCommand(command);
 
 			} else {
-				String command = "255|255"; // każ robotowi jechać prosto
-				sendCommand(command);
+				driveStraight();
 
 				tryRestart();
 			}
@@ -303,6 +307,13 @@ public class RobotController implements Runnable {
 				targets.remove(0);
 			}
 		}
+	}
+
+	/**
+	 * Rozkaz jazdy prosto
+	 */
+	private void driveStraight() {
+		sendCommand("255|255"); // każ robotowi jechać prosto
 	}
 
 	/**
