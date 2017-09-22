@@ -14,7 +14,7 @@ public class RobotController implements Runnable {
 	public static final double MAX_SPEED_PWM = 255; // 20 m/min
 	public static final double MAX_SPEED = 0.33; // 20 m/min (0.33 m/s)
 	public static final double WHEEL_TRACK = 15; // rozstaw kół, 15 cm
-	private static final int MAX_ATTEMPTS = 5; // maksymalna liczba sprawdzeń dystansu
+	private static final int MAX_ATTEMPTS = 3; // maksymalna liczba sprawdzeń dystansu
 	
 	protected GPSData previous, current, currentTarget;
 	protected List<GPSData> targets = new ArrayList<GPSData>();
@@ -30,6 +30,7 @@ public class RobotController implements Runnable {
 	private Double heading = 0.0, desiredAngle;
 	
 	private int attemptsNo = MAX_ATTEMPTS;
+	private boolean ignoredByDistance = false;
 	
 	protected Logger logger = new Logger(RobotController.class, "Logs/controller");
 	
@@ -163,8 +164,8 @@ public class RobotController implements Runnable {
 	}
 
 	/** 
-	 * Jeśli odległość między punktami jest większa niż 4 metrów - ignoruj.
-	 * Jeśli 5 współrzędnych pod rząd zostanie zignorowanych to następna zostanie uwzględniona.
+	 * Jeśli odległość między punktami jest większa niż 5 metrów - ignoruj.
+	 * Jeśli 3 współrzędne pod rząd zostanie zignorowanych to następna zostanie uwzględniona.
 	 * Jest to zabezpieczenie przed sytuacją kiedy robot mimo wszystko jechał w poprawnym kierunku
 	 * ale GPS przez pewien okres czasu dawał błędne dane. Wtedy robot mógł się zablokować na jednym
 	 * kierunku i nigdy nie odzyskać
@@ -172,15 +173,34 @@ public class RobotController implements Runnable {
 	 * @return
 	 */
 	private boolean ignoreDistantResult(GPSData receivedData) {
-		if(current != null && receivedData.getDistanceTo(current) > 4 && attemptsNo > 0) {
+		if(current != null && receivedData.getDistanceTo(current) > 5 && attemptsNo > 0) {
 			attemptsNo--; // zmniejsz liczbę prób
-			logger.info("Distance between current and received is higher than 4m. Ignored");
+			ignoredByDistance = true;
+			
+			logger.info("Distance between current and received is higher than 5m. Ignored");
 			return true;
 		}
 		
 		attemptsNo = MAX_ATTEMPTS; // zresetuj liczbę prób
 		
+		/* jeśli jakakolwiek współrzędna została zignorowana z powodu odległości
+		 * wyczyść bufor aby nie mieć nieaktualnych danych
+		 */
+		if(ignoredByDistance) {
+			clearBuffer();
+			
+			ignoredByDistance = false;
+		}
+		
 		return false;
+	}
+
+	/**
+	 * Czyści bufor cykliczny
+	 */
+	private void clearBuffer() {
+		lastCurrents = new GPSData[3];
+		lastCurrentsIndex = 0;
 	}
 
 	/**
