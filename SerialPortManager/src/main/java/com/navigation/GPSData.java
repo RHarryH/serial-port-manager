@@ -3,7 +3,6 @@ package com.navigation;
 import net.sf.marineapi.nmea.util.Position;
 
 public class GPSData {
-	private static final double EPS = 0.000005; // błąd
 	private static final double EPS_PRECISE = 0.00000001; // błąd przy dokładnym porównaniu
 	private static final double R = 6371e3; // promien Ziemi w metrach
 	
@@ -29,6 +28,11 @@ public class GPSData {
 		this.longitude = data.getLongitude();
 	}
 
+	public GPSData(Position data) {
+		this.latitude = data.getLatitude();
+		this.longitude = data.getLongitude();
+	}
+	
 	public double getLatitude() {
 		return latitude;
 	}
@@ -146,15 +150,10 @@ public class GPSData {
 		if (getClass() != obj.getClass())
 			return false;
 		GPSData other = (GPSData) obj;
-		
-		// równanie okręgu
-		// sprawdza czy punkt jest w określonym przez EPS promieniu
-		double x = Math.pow(latitude - other.latitude, 2.0);
-		double y = Math.pow(longitude - other.longitude, 2.0);
-		
-		//System.out.println("GPSData: Equals:" + (x + y) + " ? " + EPS*EPS);
-		
-		if(x + y < EPS*EPS)
+
+		// jeśli odległośc między punktami jest mniejsza niż 3 metry
+		// zakładamy, że punkty są równe
+		if(this.getDistanceTo(other) < 3)
 			return true;
 
 		return false;

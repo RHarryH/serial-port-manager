@@ -3,6 +3,7 @@ package com.navigation;
 import com.navigation.serial.GPSSerialPortManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -30,7 +31,7 @@ public class RobotController implements Runnable {
 	private Double heading = 0.0, desiredAngle;
 	
 	private int attemptsNo = MAX_ATTEMPTS;
-	private boolean ignoredByDistance = false;
+	private boolean ignored = false;
 	
 	protected Logger logger = new Logger(RobotController.class, "Logs/controller");
 	
@@ -119,7 +120,8 @@ public class RobotController implements Runnable {
 				e.printStackTrace();
 			} 
 
-			if(updatePreviousAndCurrent() == -2) {
+			// jeśli ustawiono cel i odrzucono współrzędną jed prosto 
+			if(updatePreviousAndCurrent() == -2  && currentTarget != null) {
 				driveStraight();
 				continue;
 			}
@@ -144,11 +146,28 @@ public class RobotController implements Runnable {
 		if(ignoreDistantResult(receivedData) || ignoreEqualResult(receivedData))
 			return -2;
 
+		/* jeśli jakakolwiek współrzędna została zignorowana
+		 * wyczyść bufor aby nie mieć nieaktualnych danych
+		 */
+		if(ignored) {
+			clearBuffer();
+			
+			ignored = false;
+		}
+
 		previous = current; // zapamietaj aktualna pozycje jako pozycje poprzednia
 		
 		assignToCurrent(receivedData);
 		
 		return 0;
+	}
+
+	/**
+	 * Czyści bufor cykliczny
+	 */
+	private void clearBuffer() {
+		lastCurrents = new GPSData[3];
+		lastCurrentsIndex = 0;
 	}
 
 	/**
@@ -175,7 +194,7 @@ public class RobotController implements Runnable {
 	private boolean ignoreDistantResult(GPSData receivedData) {
 		if(current != null && receivedData.getDistanceTo(current) > 5 && attemptsNo > 0) {
 			attemptsNo--; // zmniejsz liczbę prób
-			ignoredByDistance = true;
+			ignored = true;
 			
 			logger.info("Distance between current and received is higher than 5m. Ignored");
 			return true;
@@ -183,24 +202,7 @@ public class RobotController implements Runnable {
 		
 		attemptsNo = MAX_ATTEMPTS; // zresetuj liczbę prób
 		
-		/* jeśli jakakolwiek współrzędna została zignorowana z powodu odległości
-		 * wyczyść bufor aby nie mieć nieaktualnych danych
-		 */
-		if(ignoredByDistance) {
-			clearBuffer();
-			
-			ignoredByDistance = false;
-		}
-		
 		return false;
-	}
-
-	/**
-	 * Czyści bufor cykliczny
-	 */
-	private void clearBuffer() {
-		lastCurrents = new GPSData[3];
-		lastCurrentsIndex = 0;
 	}
 
 	/**
@@ -216,7 +218,9 @@ public class RobotController implements Runnable {
 			// jeśli ostatnia znana wartość jest identyczne z otrzymaną to ignorujemy
 			// pozwoli to zachować ostatni znany prawidłowy kierunek jazdy robota
 			if(lastCurrent != null && lastCurrent.equalsPrecise(receivedData)) {
-				logger.info("Received data is the same as last know value. Ignored");
+				ignored = true;
+				
+				logger.info("Received data is the same as last known value. Ignored");
 				return true;
 			}
 		}
@@ -236,7 +240,7 @@ public class RobotController implements Runnable {
 		lastCurrents[effectiveIndex] = new GPSData(receivedData);
 		
 		if(lastCurrentsIndex < 3)
-			current = receivedData; // zastap aktualna pozycje daną z portu szeregowego
+			current = new GPSData(receivedData); // zastap aktualna pozycje daną z portu szeregowego
 		else {
 			current = average(lastCurrents);
 			logger.info("Average current: " + current);
@@ -281,13 +285,15 @@ public class RobotController implements Runnable {
 		
 		if(current != null && currentTarget != null && !current.equals(currentTarget)) {
 			if(previous != null) {	
-				//if(heading == null)
+				logger.info("Distance from current to target: " + current.getDistanceTo(currentTarget) + "m");
+				logger.info("Previous: " + previous + " Current: " + current + " Target: " + currentTarget);
+				logger.info("Buffer content: " + Arrays.toString(lastCurrents));
+				logger.info("---------------------");
+
 				setHeading();
-				
 				logger.info("Heading: " + Math.toDegrees(heading));
 				
 				desiredAngle = Angle.denormalizeAngle(current.getBearingWith(currentTarget));
-				logger.info("Previous: " + previous + " Current: " + current + " Target: " + currentTarget);
 				logger.info("Desired angle: " + Math.toDegrees(desiredAngle));
 
 				double angleDelta = Math.atan2(Math.sin(desiredAngle - heading), Math.cos(desiredAngle - heading));
@@ -301,10 +307,10 @@ public class RobotController implements Runnable {
 				
 				if(angleDelta < 0) { // left
 					rightVelocity = speed;
-					leftVelocity = speed * (radius - WHEEL_TRACK / 2) / (radius + WHEEL_TRACK / 2);
+					leftVelocity = speed * (radius - WHEEL_TRACK / 2) / (radius + WHEEL_TRACK / 2) - 70;
 				} else if(angleDelta > 0) { // right
 					leftVelocity = speed;
-					rightVelocity = speed * (radius - WHEEL_TRACK / 2) / (radius + WHEEL_TRACK / 2);
+					rightVelocity = speed * (radius - WHEEL_TRACK / 2) / (radius + WHEEL_TRACK / 2) - 70;
 				}
 
 				String command = (int)leftVelocity + "|" + (int)rightVelocity;
@@ -342,10 +348,6 @@ public class RobotController implements Runnable {
 	protected void setHeading() {
 		setHeading(Angle.denormalizeAngle(previous.getBearingWith(current)));
 	}
-	
-	/*private double normalize(double speed) {
-		return (speed - 0) * 255 / ( MAX_SPEED - 0 ) + 0;
-	}*/
 
 	/**
 	 * Dokonuje próby zresetowania ustawień robota.
@@ -366,9 +368,4 @@ public class RobotController implements Runnable {
 		spm.sendCommand(command);
 		logger.info("Command " + command + " was sent\r\n\r\n");
 	}
-	
-	/*public static void main(String args[]) {
-		RobotController rc = new RobotController();
-		rc.run();
-	}*/
 }

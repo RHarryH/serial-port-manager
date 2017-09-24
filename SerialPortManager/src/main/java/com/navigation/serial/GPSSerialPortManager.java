@@ -22,7 +22,7 @@ import net.sf.marineapi.nmea.sentence.VTGSentence;
  *
  */
 public class GPSSerialPortManager extends SerialPortManager implements SentenceListener {
-	private final GPSData gps = new GPSData();
+	private GPSData gps = new GPSData();
 	private InputStream input;
 	
 	private Logger logger = new Logger(GPSSerialPortManager.class, "Logs/raw");
@@ -80,20 +80,20 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 		try {
 			switch(event.getSentence().getSentenceId()) {
 				// vector track an Speed over the Ground
-				case "VTG":
+				/*case "VTG":
 					VTGSentence vtg = (VTGSentence) event.getSentence();
 					logger.info("VTG: " + vtg.toSentence());
 					
 					if(vtg.isValid())
 						gps.setSpeed(vtg.getSpeedKmh());
-					break;
+					break;*/
 				// fix information
 				case "GGA":
 					GGASentence gga = (GGASentence) event.getSentence();
 					logger.info("GGA: " + gga.toSentence());
 					
 					if(gga.isValid())
-						gps.setPosition(gga.getPosition());
+						gps = new GPSData(gga.getPosition());
 					break;
 				default:
 					logger.info("Unused: " + event.getSentence().toSentence());
