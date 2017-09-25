@@ -151,9 +151,9 @@ public class GPSData {
 			return false;
 		GPSData other = (GPSData) obj;
 
-		// jeśli odległośc między punktami jest mniejsza niż 3 metry
+		// jeśli odległośc między punktami jest mniejsza niż 1.5 metra
 		// zakładamy, że punkty są równe
-		if(this.getDistanceTo(other) < 3)
+		if(this.getDistanceTo(other) < 1.5)
 			return true;
 
 		return false;

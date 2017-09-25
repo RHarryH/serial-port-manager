@@ -222,8 +222,4 @@ public class RobotMock {
 	private double reconstructAngle(double radius, double distance) {
 		return Math.toRadians((4 * distance) / (radius - 10));
 	}
-	
-	public void tryRestart() {
-		controller.tryRestart();
-	}
 }

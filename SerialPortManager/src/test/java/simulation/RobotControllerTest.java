@@ -92,8 +92,7 @@ public class RobotControllerTest extends RobotController {
 	/**
 	 * Pozycja nie jest aktualizowana automatycznie, należy to zrobić jawnie metodą setCurrent
 	 */
-	protected int updatePreviousAndCurrent() {
-		return 0;
+	protected void updatePreviousAndCurrent() {
 	}
 
 	/**
