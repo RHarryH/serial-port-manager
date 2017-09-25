@@ -37,7 +37,7 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 	@Override
 	protected void handleInputStream() {
 		SentenceReader reader = new SentenceReader(input);
-		reader.addSentenceListener(this, SentenceId.VTG);
+		//reader.addSentenceListener(this, SentenceId.VTG);
 		reader.addSentenceListener(this, SentenceId.GGA);
 		reader.setExceptionListener(new ExceptionListener() {
 			
