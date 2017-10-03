@@ -13,6 +13,8 @@ import net.sf.marineapi.nmea.io.ExceptionListener;
 import net.sf.marineapi.nmea.io.SentenceReader;
 import net.sf.marineapi.nmea.parser.DataNotAvailableException;
 import net.sf.marineapi.nmea.sentence.GGASentence;
+import net.sf.marineapi.nmea.sentence.HDMSentence;
+import net.sf.marineapi.nmea.sentence.HDTSentence;
 import net.sf.marineapi.nmea.sentence.SentenceId;
 import net.sf.marineapi.nmea.sentence.VTGSentence;
 
@@ -23,6 +25,7 @@ import net.sf.marineapi.nmea.sentence.VTGSentence;
  */
 public class GPSSerialPortManager extends SerialPortManager implements SentenceListener {
 	private GPSData gps = new GPSData();
+	private Double heading = null;
 	private InputStream input;
 	
 	private Logger logger = new Logger(GPSSerialPortManager.class, "Logs/raw");
@@ -39,13 +42,15 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 		SentenceReader reader = new SentenceReader(input);
 		//reader.addSentenceListener(this, SentenceId.VTG);
 		reader.addSentenceListener(this, SentenceId.GGA);
+		reader.addSentenceListener(this, SentenceId.HDM);
+		reader.addSentenceListener(this, SentenceId.HDT);
 		reader.setExceptionListener(new ExceptionListener() {
 			
 			@Override
 			public void onException(Exception e) {
 				if(e instanceof IOException) {
 					//System.err.println("Błąd we/wy (najprawdopodobniej pusty stream");
-				}
+				} 
 			}
 		});
 		
@@ -58,6 +63,14 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 	 */
 	public GPSData getGps() {
 		return gps;
+	}
+	
+	/**
+	 * Get data gathered from serial port and decoded by Marine API.
+	 * @return heading from magnetometer
+	 */
+	public Double getHeading() {
+		return heading;
 	}
 	
 	@Override
@@ -94,6 +107,20 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 					
 					if(gga.isValid())
 						gps = new GPSData(gga.getPosition());
+					break;
+				case "HDM":
+					HDMSentence hdm = (HDMSentence) event.getSentence();
+					logger.info("HDM: " + hdm.toSentence());
+					
+					if(hdm.isValid())
+						heading = hdm.getHeading();
+					break;
+				case "HDT":
+					HDTSentence hdt = (HDTSentence) event.getSentence();
+					logger.info("HDT: " + hdt.toSentence());
+					
+					if(hdt.isValid())
+						heading = hdt.getHeading();
 					break;
 				default:
 					logger.info("Unused: " + event.getSentence().toSentence());
