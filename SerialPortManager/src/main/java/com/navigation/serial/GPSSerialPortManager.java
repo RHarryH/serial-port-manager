@@ -113,14 +113,14 @@ public class GPSSerialPortManager extends SerialPortManager implements SentenceL
 					logger.info("HDM: " + hdm.toSentence());
 					
 					if(hdm.isValid())
-						heading = hdm.getHeading();
+						heading = Math.toRadians(hdm.getHeading());
 					break;
 				case "HDT":
 					HDTSentence hdt = (HDTSentence) event.getSentence();
 					logger.info("HDT: " + hdt.toSentence());
 					
 					if(hdt.isValid())
-						heading = hdt.getHeading();
+						heading = Math.toRadians(hdt.getHeading());
 					break;
 				default:
 					logger.info("Unused: " + event.getSentence().toSentence());
