@@ -293,7 +293,12 @@ public class RobotController implements Runnable {
 	 * Ustawia kierunek. Wydzielone do funkcji aby można było kontrolować tą wartość takeże w testach.
 	 */
 	protected void setHeading() {
-		setHeading(Angle.denormalizeAngle(previous.getBearingWith(current)));
+		Double headingFromMagnetometer = spm.getHeading();
+		
+		if(headingFromMagnetometer != null)
+			setHeading(headingFromMagnetometer);
+		else
+			setHeading(Angle.denormalizeAngle(previous.getBearingWith(current)));
 	}
 
 	/**
